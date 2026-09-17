@@ -2,4 +2,4 @@
 
 import pygame
 
-drawn_list = []
+drawn_list = [] # [[surface, pos, priority]]
