@@ -3,7 +3,7 @@
 from typing import override
 from collections.abc import Callable
 import pygame
-from modules.shared_variables import *
+from modules.shared_variables import delta_time_list, cur_time, drawn_list
 
 class DrawnEntity():
     def __init__(self, priority, pos) -> None:
@@ -59,21 +59,20 @@ class Text(DrawnEntity):
         self.update_text(text)
         self.draw()
 
-class DeltaTimeFunc():
-    '''A function that runs on delta time'''
-    def __init__(self, delta:int, func:Callable, repeats:bool = False) -> None:
-        '''Delta is the delta time
-        func is the function ran
-        repeats is whether the function repeats every delts'''
-        self.needed_time = delta + cur_time
+class Wait():
+    '''Class that is used to run code in delta seconds'''
+    def __init__(self, delta, func:Callable, repeats=False) -> None:
         self.repeats = repeats
+        self.needed_time = cur_time + delta
         self.func = func
         if repeats:
             self.delta = delta
-        self.add_to_delta_time_list()
-    def add_to_delta_time_list(self):
-        '''Adds itself to the delta time list'''
         delta_time_list.append(self)
+    def is_true(self):
+        if cur_time < self.needed_time:
+            return False
+        else:
+            return True
     def run(self):
         '''Runs the function, repeats if its on repeat'''
         self.func()
@@ -81,4 +80,4 @@ class DeltaTimeFunc():
             self.needed_time+=self.delta
         else:
             delta_time_list.remove(self)
-    
+            del(self)
