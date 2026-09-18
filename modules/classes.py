@@ -83,8 +83,8 @@ class Note(Sprite):
     '''Class for moving notes'''
     def __init__(self, key:int) -> None:
         '''Pos is the key needed'''
-        pos = (,0)
-        super().__init__(-8, (100, 100), "note")
+        pos = (360+200*key,0)
+        super().__init__(-8, pos, "note")
 
 class Wait():
     '''Class that is used to run code in delta seconds'''
