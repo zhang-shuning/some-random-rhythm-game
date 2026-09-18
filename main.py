@@ -4,6 +4,7 @@ import time
 from modules.classes import *
 from modules.constants import *
 from modules.shared_variables import *
+from modules.scripts import *
 
 #Pygame variable initialization
 running:bool = True
