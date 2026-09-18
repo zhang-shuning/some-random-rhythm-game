@@ -4,6 +4,8 @@ from typing import override
 from collections.abc import Callable
 from logging import getLogger, DEBUG
 import pygame
+
+from modules.scripts import handle_fblits
 from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict
 
 _logger = getLogger(__name__)
@@ -25,7 +27,7 @@ class DrawnEntity():
             drawn_list.remove(self.to_send)
         self.to_send = (self.entities, self.pos, self.priority)
     def draw(self) -> None:
-        '''Adds the entity to the draw list '''
+        '''Adds the entity to the draw list'''
         self.stop_draw()
         drawn_list.append(self.to_send)
     def update_priority(self, priority):

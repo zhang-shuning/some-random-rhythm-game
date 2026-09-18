@@ -8,27 +8,30 @@ from modules.scripts import *
 
 #Pygame variable initialization
 running:bool = True
-screen = pygame.display.set_mode((0, 0),pygame.FULLSCREEN )
+screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
 
+Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
 
-Sprite(-1, (500, 500), "test").draw()
-
-Text("Hello world!", (100, 100), 1).draw()
+Text("Hello world!", (100, 100), .2).draw()
+mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (0, 0), 100)
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
 fps_update = Wait(1, fps_wrapper, True)
 
 while running:
+    print(clock.get_fps())
     #Update clock
     cur_time = time.time()
     #Get events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
@@ -39,10 +42,8 @@ while running:
     #Clear screen
     screen.fill((0,0,0))
     #Draw screen
-    drawn_list.sort(key=lambda x:x[2])
-    for i in drawn_list:
-        for surface in i[0]:
-            screen.blit(surface,i[1])
+    handle_fblits()
+    screen.fblits(fblits_list)
     #Next frame
     pygame.display.flip()
     clock.tick(FPS_CAP)

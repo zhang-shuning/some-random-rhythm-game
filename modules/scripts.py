@@ -1,7 +1,7 @@
 '''This file includes functions that are important to make stuff appear on screen'''
 import pygame
 import pathlib
-from modules.shared_variables import images_dict
+from modules.shared_variables import images_dict, drawn_list, fblits_list
 from modules.constants import IMAGE_FILE_EXTENSIONS
 
 def switch_screen(screen:int):
@@ -13,11 +13,11 @@ def init_screens():
 def _load_image(image_path:str|pathlib.Path, texture_name:str, transparent=False):
     '''Loads a single image and saves to dictionary based from filename'''
     if not transparent:
-        images_dict[texture_name] = pygame.image.load(image_path)
+        images_dict[texture_name] = pygame.image.load(image_path).convert()
     else:
         images_dict[texture_name] = pygame.image.load(image_path).convert_alpha()
 
-def load_images():
+def load_images() -> None:
     '''Loads all images and saves them to a dictionary'''
     print("Loading images...")
     assets_folder = pathlib.Path("assets/textures")
@@ -25,6 +25,14 @@ def load_images():
         if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
             print(item.name)
             _load_image(item, item.stem)
+
+def handle_fblits():
+    '''Change the to draw list to a format where you can fblits'''
+    drawn_list.sort(key=lambda x:x[2])
+    fblits_list.clear()
+    for i in drawn_list:
+        for surface in i[0]:
+            fblits_list.append((surface, i[1]))
 
 if __name__ == "__main__":
     load_images()
