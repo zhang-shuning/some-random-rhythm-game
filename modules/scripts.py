@@ -1,14 +1,20 @@
 '''This file includes functions that are important to make stuff appear on screen'''
 import pygame
 import pathlib
-from modules.shared_variables import images_dict, drawn_list, fblits_list
-from modules.constants import IMAGE_FILE_EXTENSIONS
+
+from modules.shared_variables import *
+from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE, VERTICAL_SIZE, ScreenEnum
+from modules.classes import Sprite
 
 def switch_screen(screen:int):
     '''Switch to screen in the input'''
 
 def init_screens():
     '''Initializes the basic features for each screen'''
+
+def reset_game_screen():
+    '''Resets the game scene'''
+    Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
 
 def _load_image(image_path:str|pathlib.Path, texture_name:str, transparent=False):
     '''Loads a single image and saves to dictionary based from filename'''

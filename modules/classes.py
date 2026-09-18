@@ -5,7 +5,6 @@ from collections.abc import Callable
 from logging import getLogger, DEBUG
 import pygame
 
-from modules.scripts import handle_fblits
 from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict, running
 
 _logger = getLogger(__name__)
@@ -79,7 +78,14 @@ class Sprite(DrawnEntity):
         super().__init__(priority, pos)
     def setup(self) -> None:
         self.entities.append(self.image)   
-        
+
+class Note(Sprite):
+    '''Class for moving notes'''
+    def __init__(self, key:int) -> None:
+        '''Pos is the key needed'''
+        pos = (,0)
+        super().__init__(-8, (100, 100), "note")
+
 class Wait():
     '''Class that is used to run code in delta seconds'''
     def __init__(self, delta, func:Callable, repeats=False) -> None:

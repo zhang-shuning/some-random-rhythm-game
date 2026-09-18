@@ -12,9 +12,10 @@ clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
 
-Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
+#Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
+Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart").draw()
+Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line").draw()
 
-Text("Hello world!", (100, 100), .2).draw()
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (0, 0), 100)
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))

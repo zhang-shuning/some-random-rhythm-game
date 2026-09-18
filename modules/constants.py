@@ -9,7 +9,7 @@ VERTICAL_SIZE = 1080
 
 #Gameplay
 SCROLL_SPEED = 10
-
+JUDGEMENT_LINE_HEIGHT = 60
 
 IMAGE_FILE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
