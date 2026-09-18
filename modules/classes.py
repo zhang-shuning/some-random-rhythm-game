@@ -2,11 +2,12 @@
 
 from typing import override
 from collections.abc import Callable
-from logging import getLogger
+from logging import getLogger, DEBUG
 import pygame
 from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict
 
 _logger = getLogger(__name__)
+_logger.setLevel(DEBUG)
 
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
@@ -70,8 +71,8 @@ class Sprite(DrawnEntity):
         self.image = images_dict.get(image_name)
         if self.image is None:
             _logger.error("Image %s not found!", image_name)
-            self.image = pygame.Surface(size=100)
-            self.image.fill("#9D00FF")
+            self.image = pygame.Surface(size=(100, 100))
+            self.image.fill((100, 100, 100))
         super().__init__(priority, pos)
     def setup(self) -> None:
         self.entities.append(self.image)

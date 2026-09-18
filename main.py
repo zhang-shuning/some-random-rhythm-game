@@ -8,9 +8,13 @@ from modules.scripts import *
 
 #Pygame variable initialization
 running:bool = True
-screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE))
+screen = pygame.display.set_mode((0, 0),pygame.FULLSCREEN )
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
+load_images()
+
+
+Sprite(-1, (500, 500), "test").draw()
 
 Text("Hello world!", (100, 100), 1).draw()
 fps_text = Text("0", (0, 0), 100)
