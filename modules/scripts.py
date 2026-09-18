@@ -1,7 +1,8 @@
 '''This file includes functions that are important to make stuff appear on screen'''
 import pygame
 import pathlib
-from shared_variables import images_dict
+from modules.shared_variables import images_dict
+from modules.constants import IMAGE_FILE_EXTENSIONS
 
 def switch_screen(screen:int):
     '''Switch to screen in the input'''
@@ -18,3 +19,11 @@ def _load_image(image_path:str, texture_name:str, transparent=False):
 
 def load_images():
     '''Loads all images and saves them to a dictionary'''
+    print("Loading images...")
+    assets_folder = pathlib.Path("assets/textures")
+    for item in assets_folder.rglob("*"):
+        if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
+            print(item.name)
+
+if __name__ == "__main__":
+    load_images()

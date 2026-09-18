@@ -63,9 +63,9 @@ class Text(DrawnEntity):
 
 class Sprite(DrawnEntity):
     '''Class with sprites'''
-    def __init__(self, priority, pos, image_location) -> None:
+    def __init__(self, priority, pos, image_name) -> None:
         super().__init__(priority, pos)
-        self.file = image_location
+        
 
 
 class Wait():
