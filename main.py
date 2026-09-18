@@ -3,11 +3,10 @@ import time
 
 from modules.classes import *
 from modules.constants import *
-from modules.shared_variables import *
+from modules.shared_variables import running
 from modules.scripts import *
 
 #Pygame variable initialization
-running:bool = True
 screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
@@ -22,8 +21,8 @@ def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
 fps_update = Wait(1, fps_wrapper, True)
 
+#Main loop
 while running:
-    print(clock.get_fps())
     #Update clock
     cur_time = time.time()
     #Get events
@@ -32,6 +31,7 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
+            print(pygame.mouse.get_pos())
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False

@@ -27,7 +27,7 @@ def load_images() -> None:
             _load_image(item, item.stem)
 
 def handle_fblits():
-    '''Change the to draw list to a format where you can fblits'''
+    '''Updates fblits list from the drawn list'''
     drawn_list.sort(key=lambda x:x[2])
     fblits_list.clear()
     for i in drawn_list:

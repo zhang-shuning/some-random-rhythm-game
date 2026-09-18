@@ -6,7 +6,7 @@ from logging import getLogger, DEBUG
 import pygame
 
 from modules.scripts import handle_fblits
-from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict
+from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict, running
 
 _logger = getLogger(__name__)
 _logger.setLevel(DEBUG)
@@ -72,17 +72,14 @@ class Sprite(DrawnEntity):
     def __init__(self, priority, pos, image_name) -> None:
         self.image = images_dict.get(image_name)
         if self.image is None:
-            _logger.error("Image %s not found!", image_name)
+            _logger.fatal("Texture %s not found!\nExiting...", image_name)
+            running = False
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
         super().__init__(priority, pos)
     def setup(self) -> None:
-        self.entities.append(self.image)
-
+        self.entities.append(self.image)   
         
-        
-
-
 class Wait():
     '''Class that is used to run code in delta seconds'''
     def __init__(self, delta, func:Callable, repeats=False) -> None:

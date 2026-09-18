@@ -8,13 +8,12 @@ HORIZONTAL_SIZE = 1920
 VERTICAL_SIZE = 1080
 
 #Gameplay
-SCREEN_RATIO = HORIZONTAL_SIZE/VERTICAL_SIZE
-BOX_SIZE = (HORIZONTAL_SIZE//2, VERTICAL_SIZE)
+SCROLL_SPEED = 10
 
 
 IMAGE_FILE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
 class ScreenEnum(enum.Enum):
-    '''Enum to store the names of the screens'''
+    '''Contains the names of the screens in the game'''
     GAMEPLAY = enum.auto()
     MAIN_MENU = enum.auto()

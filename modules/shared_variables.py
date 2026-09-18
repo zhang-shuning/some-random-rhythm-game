@@ -6,9 +6,13 @@ import pygame
 if TYPE_CHECKING:
     from classes import *
 
+#Setup/internal buffers
 surface_dict = {} #The surface dict will store drawn lists
 images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
 drawn_list = [] # [[surface, pos, priority]]
 fblits_list = [] # list for fblits
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
-cur_time = 0
+cur_time = 0 #Current unix time
+
+#Gameplay variables
+running = True
