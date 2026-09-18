@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from classes import *
 
 surface_dict = {} #The surface dict will store drawn lists
+images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
 drawn_list = [] # [[surface, pos, priority]]
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 cur_time = 0

@@ -15,7 +15,6 @@ class DrawnEntity():
         self.setup()
     def setup(self) -> None:
         '''Doesn't do anything, override this!'''
-        pass
     def stop_draw(self) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
         if self.to_send in drawn_list:
@@ -62,6 +61,11 @@ class Text(DrawnEntity):
         self.update_text(text)
         self.draw()
 
+class Sprite(DrawnEntity):
+    '''Class with sprites'''
+    def __init__(self, priority, pos, image_location) -> None:
+        super().__init__(priority, pos)
+        self.file = image_location
 
 
 class Wait():
