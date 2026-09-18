@@ -6,6 +6,7 @@ import pygame
 from modules.shared_variables import delta_time_list, cur_time, drawn_list
 
 class DrawnEntity():
+    '''This is the base class for all entities that get drawn on screen.'''
     def __init__(self, priority, pos) -> None:
         self.pos = pos
         self.priority = priority
@@ -29,8 +30,9 @@ class DrawnEntity():
         self.priority = priority
 
 class Text(DrawnEntity):
+    '''This class is for text on screen'''
     @override
-    def __init__(self, text:str, pos, priority, font_size = 30,
+    def __init__(self, text:str, pos:tuple[int,int,int], priority:int, font_size = 30,
                   text_color = (255, 255, 255), bg_color = (100, 100, 100)) -> None:
         self.text = text
         self.font_size = font_size
@@ -39,15 +41,16 @@ class Text(DrawnEntity):
         super().__init__(priority, pos)
     @override
     def setup(self):
-        self.current_text = self.make_text()
+        self.current_text = self.get_text()
         self.entities.append(self.current_text)
-    def make_text(self) -> pygame.Surface:
+    def get_text(self) -> pygame.Surface:
+        '''Returns the text object from the data in the class'''
         return pygame.font.Font(size=self.font_size).render(
             self.text, True, self.text_color, self.bg_color)
     def update_text(self, text):
         '''Updates text without stopping'''
         self.text = text
-        new_text = self.make_text()
+        new_text = self.get_text()
         self.entities[self.entities.index(self.current_text)] = new_text
         self.current_text = new_text
     def update_and_stop_text(self, text):
@@ -58,6 +61,8 @@ class Text(DrawnEntity):
         '''Draws text while updating it'''
         self.update_text(text)
         self.draw()
+
+
 
 class Wait():
     '''Class that is used to run code in delta seconds'''
