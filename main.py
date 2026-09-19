@@ -1,4 +1,5 @@
 '''Main file for the game'''
+# pylint: disable=no-member
 import time
 import pygame
 
@@ -8,7 +9,7 @@ from modules.shared_variables import *
 from modules.scripts import load_images, handle_fblits
 
 #Pygame variable initialization
-screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
+screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
@@ -28,20 +29,18 @@ fps_text.draw()
 fps_update = Wait(1, fps_wrapper, True)
 
 #Main loop
-while running:
-    #Update clock
-    cur_time = time.time()
+while Flags.running:
     #Get events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            Flags.running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if DEBUG:
                 mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
                 print(pygame.mouse.get_pos())
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                running = False
+                Flags.running = False
             elif event.key == pygame.K_d:
                 pass
             elif event.key == pygame.K_f:
@@ -50,17 +49,24 @@ while running:
                 pass
             elif event.key == pygame.K_k:
                 pass
+
     #Get delta time events
     for i in delta_time_list:
         if i.is_true:
             i.run()
-    #Clear screen
-    screen.fill((0,0,0))
-    #Draw screen
-    handle_fblits()
-    screen.fblits(fblits_list)
-    for note in note_list:
-        note.move()
-    #Next frame
-    pygame.display.flip()
-    clock.tick(FPS_CAP)
+
+    #Rendering
+    if Flags.ticks % FRAME_FREQUENCY == 0:
+        #Clear screen
+        screen.fill((0,0,0))
+        #Draw screen
+        handle_fblits()
+        screen.fblits(fblits_list)
+        for note_row in note_list:
+            for note in note_row:
+                note.move()
+        pygame.display.flip()
+
+    #Next tick
+    Flags.ticks+=1
+    clock.tick(TPS_CAP)

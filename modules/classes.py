@@ -5,8 +5,8 @@ from collections.abc import Callable
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict, note_list
-from modules.constants import SCROLL_SPEED
+from modules.shared_variables import delta_time_list, Flags, drawn_list, images_dict, note_list
+from modules.constants import SCROLL_SPEED, TIME_NEEDED, TPS_CAP
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -37,7 +37,7 @@ class DrawnEntity():
 class Text(DrawnEntity):
     '''This class is for text on screen'''
     @override
-    def __init__(self, text:str, pos:tuple[int,int,int], priority:int, font_size = 30,
+    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size = 30,
                   text_color = (255, 255, 255), bg_color = (100, 100, 100)) -> None:
         self.text = text
         self.font_size = font_size
@@ -73,7 +73,7 @@ class Sprite(DrawnEntity):
         self.image = images_dict.get(image_name)
         if self.image is None:
             _logger.fatal("Texture %s not found!\nExiting...", image_name)
-            running = False
+            Flags.running = False
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
         super().__init__(priority, pos)
@@ -85,26 +85,35 @@ class Note(Sprite):
     def __init__(self, key:int) -> None:
         '''Pos is the key needed'''
         self.pos = [360+200*key,0]
+        self.key = key
         super().__init__(-8, self.pos, "note")
-        note_list.append(self)
+        note_list[key-1].append(self)
+        self.tick_needed = TIME_NEEDED + Flags.ticks
+        print(TIME_NEEDED, self.tick_needed)
     def draw(self) -> None:
         return super().draw()
     def move(self) -> None:
+        if Flags.ticks >= self.tick_needed:
+            print("time passed")
+            Flags.running = False
         self.pos[1] += SCROLL_SPEED
         if self.pos[1] > 1200:
-            note_list.remove(self)
+            note_list[self.key-1].remove(self)
+    def judge(self) -> bool:
+        '''Note judgment'''
+        return True
 
 class Wait():
-    '''Class that is used to run code in delta seconds'''
+    '''Class that is used to run code in delta ticks'''
     def __init__(self, delta, func:Callable, repeats=False) -> None:
         self.repeats = repeats
-        self.needed_time = cur_time + delta
+        self.needed_time = Flags.ticks + delta*TPS_CAP
         self.func = func
         if repeats:
             self.delta = delta
         delta_time_list.append(self)
     def is_true(self):
-        if cur_time < self.needed_time:
+        if Flags.ticks < self.needed_time:
             return False
         else:
             return True
