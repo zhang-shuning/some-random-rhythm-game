@@ -98,7 +98,7 @@ while Flags.running:
 
     #Get delta time events
     for i in delta_time_list:
-        if i.is_true():
+        if i.time_passed():
             i.run()
 
     #Rendering

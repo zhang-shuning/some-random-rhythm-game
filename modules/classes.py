@@ -20,8 +20,13 @@ class DrawnEntity():
         self.to_send = ([], 0)
         self.is_drawn = False
         self.setup()
+
     def setup(self) -> None:
-        '''Doesn't do anything, override this!'''
+        '''
+        Where the entities get appended to the entitylist.\n
+        Meant to be overridden.
+        '''
+
     def stop_draw(self, center_pos = False, entity_index=0) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
         if self.to_send in drawn_list:
@@ -31,14 +36,17 @@ class DrawnEntity():
         else:
             self.to_send = [self.entities, self.pos, self.priority]
         self.is_drawn = False
+
     def draw(self, center_pos = False, entity_index=0) -> None:
         '''Adds the entity to the draw list'''
         self.stop_draw(center_pos, entity_index)
         drawn_list.append(self.to_send)
         self.is_drawn = True
+
     def update_priority(self, priority):
         '''Changes priority but text needs to be redrawn'''
         self.priority = priority
+
     def center_pos(self, surface:pygame.Surface) -> tuple[int,int]:
         '''Returns pos to centered coordinates from surface and coordinates'''
         x = self.pos[0] - surface.get_width() // 2
@@ -48,7 +56,6 @@ class DrawnEntity():
 
 class Text(DrawnEntity):
     '''This class is for text on screen'''
-    @override
     def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30,
                   text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
         self.text = text
@@ -56,10 +63,12 @@ class Text(DrawnEntity):
         self.text_color = text_color
         self.bg_color = bg_color
         super().__init__(priority, pos)
+
     @override
     def setup(self):
         self.current_text = self.get_text()
         self.entities.append(self.current_text)
+
     def get_text(self) -> pygame.Surface:
         '''Returns the text object from the data in the class'''
         if self.bg_color:
@@ -75,10 +84,12 @@ class Text(DrawnEntity):
         new_text = self.get_text()
         self.entities[self.entities.index(self.current_text)] = new_text
         self.current_text = new_text
+
     def update_and_stop_text(self, text):
         '''Stops text if it's running, and updates text'''
         self.update_text(text)
         self.stop_draw()
+
     def update_and_draw_text(self, text):
         '''Draws text while updating it'''
         self.update_text(text)
@@ -94,6 +105,8 @@ class Sprite(DrawnEntity):
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
         super().__init__(priority, pos)
+
+    @override
     def setup(self) -> None:
         self.entities.append(self.image)
 
@@ -158,11 +171,14 @@ class Wait():
         if repeats:
             self.delta = delta
         delta_time_list.append(self)
-    def is_true(self):
+
+    def time_passed(self):
+        '''Returns whether the time passed yet or not'''
         if Counters.ticks < self.needed_time:
             return False
         else:
             return True
+
     def run(self):
         '''Runs the function, repeats if its on repeat'''
         self.func(*self.args)
@@ -177,6 +193,7 @@ class WaitExtendable(Wait):
     def __init__(self, delta, func: Callable[..., Any], *args) -> None:
         self.activated = False
         super().__init__(delta, func, True, *args)
+
     def set_time(self, time:int|float=-1):
         '''
         Sets timer to time seconds\n
@@ -187,10 +204,13 @@ class WaitExtendable(Wait):
             self.needed_time = self.delta*TPS_CAP + Counters.ticks
         else:
             self.needed_time = time*TPS_CAP + Counters.ticks
-    def is_true(self):
+
+    @override
+    def time_passed(self):
         if self.activated:
-            return super().is_true()
+            return super().time_passed()
         return False
+    @override
     def run(self):
         self.activated = False
         self.func()
