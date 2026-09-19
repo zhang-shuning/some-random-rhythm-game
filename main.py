@@ -15,10 +15,10 @@ clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
 
-#Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
 Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart").draw()
 Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line").draw()
 
+#Just spawns some notes every 3 seconds
 def note_test_wrapper():
     Note(1).draw()
     Note(2).draw()
@@ -27,6 +27,14 @@ def note_test_wrapper():
 
 note_test_wrapper()
 Wait(3, note_test_wrapper, True)
+
+#Rhythm gaming!
+def _judge_note(lane:int):
+    if len(note_list[lane]) !=0:
+        cur_score = note_list[lane][0].judge()
+        if cur_score != -1:
+            Counters.score += cur_score
+            Flags.score_updated = True
 
 hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-300), "hit_light")] for x in range(4)]
 for i in hit_lights:
@@ -38,18 +46,17 @@ def _enable_hitlight(n):
         print(delta_time_list, hit_lights[n][1].needed_time, Counters.ticks)
         hit_lights[n][0].draw()
 
-#Rhythm gaming!
-def _judge_note(lane:int):
-    if len(note_list[lane]) !=0:
-        cur_score = note_list[lane][0].judge()
-        if cur_score != -1:
-            Counters.score += cur_score
-            Flags.score_updated = True
-
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (0, 0), 100)
 score_text = Text("score: 0", (0, 25), 100)
+
+excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=100)
+good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=100)
+ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=100)
+bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=100)
+miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=200, text_color=(255, 0, 0))
+
 
 score_text.draw()
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))

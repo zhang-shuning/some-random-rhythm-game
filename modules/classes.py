@@ -13,7 +13,7 @@ _logger.setLevel(logging.DEBUG)
 
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
-    def __init__(self, priority, pos) -> None:
+    def __init__(self, priority:int, pos:tuple[int,int]) -> None:
         self.pos = pos
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
@@ -22,26 +22,35 @@ class DrawnEntity():
         self.setup()
     def setup(self) -> None:
         '''Doesn't do anything, override this!'''
-    def stop_draw(self) -> None:
+    def stop_draw(self, center_pos = False, entity_index=0) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
         if self.to_send in drawn_list:
             drawn_list.remove(self.to_send)
-        self.to_send = (self.entities, self.pos, self.priority)
+        if center_pos:
+            self.to_send = [self.entities, self.center_pos(self.entities[entity_index]), self.priority]
+        else:
+            self.to_send = [self.entities, self.pos, self.priority]
         self.is_drawn = False
-    def draw(self) -> None:
+    def draw(self, center_pos = False, entity_index=0) -> None:
         '''Adds the entity to the draw list'''
-        self.stop_draw()
+        self.stop_draw(center_pos, entity_index)
         drawn_list.append(self.to_send)
         self.is_drawn = True
     def update_priority(self, priority):
         '''Changes priority but text needs to be redrawn'''
         self.priority = priority
+    def center_pos(self, surface:pygame.Surface) -> tuple[int,int]:
+        '''Returns pos to centered coordinates from surface and coordinates'''
+        x = self.pos[0] - surface.get_width() // 2
+        y = self.pos[1] - surface.get_height() // 2
+        return (x, y)
+
 
 class Text(DrawnEntity):
     '''This class is for text on screen'''
     @override
-    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size = 30,
-                  text_color = (255, 255, 255), bg_color = (100, 100, 100)) -> None:
+    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30,
+                  text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
         self.text = text
         self.font_size = font_size
         self.text_color = text_color
@@ -53,8 +62,13 @@ class Text(DrawnEntity):
         self.entities.append(self.current_text)
     def get_text(self) -> pygame.Surface:
         '''Returns the text object from the data in the class'''
+        if self.bg_color:
+            return pygame.font.Font(size=self.font_size).render(
+                self.text, True, self.text_color, self.bg_color)
+        #Transparent
         return pygame.font.Font(size=self.font_size).render(
-            self.text, True, self.text_color, self.bg_color)
+            self.text, True, self.text_color)
+
     def update_text(self, text):
         '''Updates text without stopping'''
         self.text = text
