@@ -16,8 +16,11 @@ delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 
 
 class Flags():
-    cur_time = 0.0 #Current unix time
+    '''Stores all the flags'''
     running = True
+
+class Counters():
+    '''Stores all the counters'''
     ticks = 0
 
 #Gameplay variables

@@ -17,16 +17,22 @@ load_images()
 #Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
 Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart").draw()
 Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line").draw()
-Note(1).draw()
-Note(2).draw()
-Note(3).draw()
-Note(4).draw()
+
+def note_test_wrapper():
+    Note(1).draw()
+    Note(2).draw()
+    Note(3).draw()
+    Note(4).draw()
+
+note_test_wrapper()
+
+Wait(10, note_test_wrapper, True)
 
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (0, 0), 100)
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
-fps_update = Wait(1, fps_wrapper, True)
+fps_update = Wait(.1, fps_wrapper, True)
 
 #Main loop
 while Flags.running:
@@ -52,11 +58,11 @@ while Flags.running:
 
     #Get delta time events
     for i in delta_time_list:
-        if i.is_true:
+        if i.is_true():
             i.run()
 
     #Rendering
-    if Flags.ticks % FRAME_FREQUENCY == 0:
+    if Counters.ticks % FRAME_FREQUENCY == 0:
         #Clear screen
         screen.fill((0,0,0))
         #Draw screen
@@ -68,5 +74,5 @@ while Flags.running:
         pygame.display.flip()
 
     #Next tick
-    Flags.ticks+=1
+    Counters.ticks+=1
     clock.tick(TPS_CAP)

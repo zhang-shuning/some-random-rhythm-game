@@ -5,8 +5,8 @@ from collections.abc import Callable
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, drawn_list, images_dict, note_list
-from modules.constants import SCROLL_SPEED, TIME_NEEDED, TPS_CAP
+from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, note_list
+from modules.constants import *
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -81,47 +81,78 @@ class Sprite(DrawnEntity):
         self.entities.append(self.image)
 
 class Note(Sprite):
-    '''Class for moving notes'''
+    '''Class for not long notes'''
     def __init__(self, key:int) -> None:
         '''Pos is the key needed'''
         self.pos = [360+200*key,0]
         self.key = key
         super().__init__(-8, self.pos, "note")
+        self.draw()
         note_list[key-1].append(self)
-        self.tick_needed = TIME_NEEDED + Flags.ticks
+        self.tick_needed = TIME_NEEDED + Counters.ticks
         print(TIME_NEEDED, self.tick_needed)
-    def draw(self) -> None:
-        return super().draw()
+
     def move(self) -> None:
-        if Flags.ticks >= self.tick_needed:
-            print("time passed")
-            Flags.running = False
+        '''Function that moves the note'''
         self.pos[1] += SCROLL_SPEED
+        #Missed note
         if self.pos[1] > 1200:
-            note_list[self.key-1].remove(self)
-    def judge(self) -> bool:
-        '''Note judgment'''
-        return True
+            self.destroy()
+
+    def judge(self) -> int:
+        '''
+        Note judgment\n
+        Returns judgement score, if the judgement is not in range, return -1\n
+        If it is in range, destroy the note
+        '''
+        #Excellent
+        if self._within_range(EXCELLENT_RANGE):
+            self.destroy()
+            return 300
+        if self._within_range(GOOD_RANGE):
+            self.destroy()
+            return 200
+        if self._within_range(OK_RANGE):
+            self.destroy()
+            return 100
+        if self._within_range(BAD_RANGE):
+            self.destroy()
+            return 50
+        if self._within_range(MISS_RANGE):
+            return 0
+        return -1
+
+    def _within_range(self, range:int) -> bool:
+        if self.tick_needed-range <= self.tick_needed <= self.tick_needed+range:
+            return True
+        return False
+
+    def destroy(self):
+        '''Removes itself from note and draw list'''
+        note_list[self.key-1].remove(self)
+        drawn_list.remove(self.to_send)
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
     def __init__(self, delta, func:Callable, repeats=False) -> None:
         self.repeats = repeats
-        self.needed_time = Flags.ticks + delta*TPS_CAP
+        self.needed_time = Counters.ticks + delta*TPS_CAP
+        print(f"needed time {self.needed_time}")
         self.func = func
         if repeats:
             self.delta = delta
         delta_time_list.append(self)
     def is_true(self):
-        if Flags.ticks < self.needed_time:
+        if Counters.ticks < self.needed_time:
             return False
         else:
             return True
     def run(self):
         '''Runs the function, repeats if its on repeat'''
+        print(f"needed tick {self.needed_time} current tick {Counters.ticks}")
         self.func()
         if self.repeats:
-            self.needed_time+=self.delta
+            self.needed_time+=self.delta*TPS_CAP
         else:
             delta_time_list.remove(self)
             del(self)
