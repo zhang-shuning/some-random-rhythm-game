@@ -1,10 +1,11 @@
-import pygame
+'''Main file for the game'''
 import time
+import pygame
 
-from modules.classes import *
+from modules.classes import Note, Text, Wait, Sprite
 from modules.constants import *
-from modules.shared_variables import running
-from modules.scripts import *
+from modules.shared_variables import *
+from modules.scripts import load_images, handle_fblits
 
 #Pygame variable initialization
 screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
@@ -35,11 +36,20 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
-            print(pygame.mouse.get_pos())
+            if DEBUG:
+                mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
+                print(pygame.mouse.get_pos())
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_d:
+                pass
+            elif event.key == pygame.K_f:
+                pass
+            elif event.key == pygame.K_j:
+                pass
+            elif event.key == pygame.K_k:
+                pass
     #Get delta time events
     for i in delta_time_list:
         if i.is_true:
@@ -49,6 +59,8 @@ while running:
     #Draw screen
     handle_fblits()
     screen.fblits(fblits_list)
+    for note in note_list:
+        note.move()
     #Next frame
     pygame.display.flip()
     clock.tick(FPS_CAP)

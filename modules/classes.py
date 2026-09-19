@@ -2,14 +2,14 @@
 
 from typing import override
 from collections.abc import Callable
-from logging import getLogger, DEBUG
+import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict
-from modules.constants import 
+from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict, note_list
+from modules.constants import SCROLL_SPEED
 
-_logger = getLogger(__name__)
-_logger.setLevel(DEBUG)
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
@@ -78,7 +78,7 @@ class Sprite(DrawnEntity):
             self.image.fill((100, 100, 100))
         super().__init__(priority, pos)
     def setup(self) -> None:
-        self.entities.append(self.image)   
+        self.entities.append(self.image)
 
 class Note(Sprite):
     '''Class for moving notes'''
@@ -91,6 +91,8 @@ class Note(Sprite):
         return super().draw()
     def move(self) -> None:
         self.pos[1] += SCROLL_SPEED
+        if self.pos[1] > 1200:
+            note_list.remove(self)
 
 class Wait():
     '''Class that is used to run code in delta seconds'''

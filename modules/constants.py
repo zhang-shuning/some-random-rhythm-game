@@ -6,6 +6,7 @@ import enum
 FPS_CAP = 60
 HORIZONTAL_SIZE = 1920
 VERTICAL_SIZE = 1080
+DEBUG = True
 
 #Gameplay
 SCROLL_SPEED = 10
