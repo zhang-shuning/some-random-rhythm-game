@@ -26,10 +26,17 @@ def note_test_wrapper():
 
 note_test_wrapper()
 
-Wait(10, note_test_wrapper, True)
+Wait(3, note_test_wrapper, True)
 
+#Rhythm gaming!
+cur_score = 0
+
+#Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (0, 0), 100)
+score_text = Text("score: 0", (0, 25), 100)
+
+score_text.draw()
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, True)
@@ -48,13 +55,25 @@ while Flags.running:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
             elif event.key == pygame.K_d:
-                pass
+                if len(note_list[0]) !=0:
+                    cur_score = note_list[0][0].judge()
+                    if cur_score != -1:
+                        Counters.score += cur_score
             elif event.key == pygame.K_f:
-                pass
+                if len(note_list[1]) !=0:
+                    cur_score = note_list[1][0].judge()
+                    if cur_score != -1:
+                        Counters.score += cur_score
             elif event.key == pygame.K_j:
-                pass
+                if len(note_list[2]) !=0:
+                    cur_score = note_list[2][0].judge()
+                    if cur_score != -1:
+                        Counters.score += cur_score
             elif event.key == pygame.K_k:
-                pass
+                if len(note_list[3]) !=0:
+                    cur_score = note_list[3][0].judge()
+                    if cur_score != -1:
+                        Counters.score += cur_score
 
     #Get delta time events
     for i in delta_time_list:

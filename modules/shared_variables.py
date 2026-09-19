@@ -22,6 +22,7 @@ class Flags():
 class Counters():
     '''Stores all the counters'''
     ticks = 0
+    score = 0
 
 #Gameplay variables
 note_list:list[list[Note]] = [[],[],[],[]] #List of all notes on screen

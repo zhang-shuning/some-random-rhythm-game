@@ -96,7 +96,7 @@ class Note(Sprite):
         '''Function that moves the note'''
         self.pos[1] += SCROLL_SPEED
         #Missed note
-        if self.pos[1] > 1200:
+        if self.pos[1] > VERTICAL_SIZE:
             self.destroy()
 
     def judge(self) -> int:
@@ -137,7 +137,6 @@ class Wait():
     def __init__(self, delta, func:Callable, repeats=False) -> None:
         self.repeats = repeats
         self.needed_time = Counters.ticks + delta*TPS_CAP
-        print(f"needed time {self.needed_time}")
         self.func = func
         if repeats:
             self.delta = delta
