@@ -5,7 +5,8 @@ from collections.abc import Callable
 from logging import getLogger, DEBUG
 import pygame
 
-from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict, running
+from modules.shared_variables import delta_time_list, cur_time, drawn_list, images_dict
+from modules.constants import 
 
 _logger = getLogger(__name__)
 _logger.setLevel(DEBUG)
@@ -83,8 +84,13 @@ class Note(Sprite):
     '''Class for moving notes'''
     def __init__(self, key:int) -> None:
         '''Pos is the key needed'''
-        pos = (360+200*key,0)
-        super().__init__(-8, pos, "note")
+        self.pos = [360+200*key,0]
+        super().__init__(-8, self.pos, "note")
+        note_list.append(self)
+    def draw(self) -> None:
+        return super().draw()
+    def move(self) -> None:
+        self.pos[1] += SCROLL_SPEED
 
 class Wait():
     '''Class that is used to run code in delta seconds'''

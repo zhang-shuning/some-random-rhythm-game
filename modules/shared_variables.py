@@ -16,3 +16,4 @@ cur_time = 0 #Current unix time
 
 #Gameplay variables
 running = True
+note_list = [] #List of all notes on screen
