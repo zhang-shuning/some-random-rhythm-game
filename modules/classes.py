@@ -1,6 +1,6 @@
 '''This file contains the classes used in the game!'''
 
-from typing import override
+from typing import Any, override
 from collections.abc import Callable
 import logging
 import pygame
@@ -18,6 +18,7 @@ class DrawnEntity():
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
         self.to_send = ([], 0)
+        self.is_drawn = False
         self.setup()
     def setup(self) -> None:
         '''Doesn't do anything, override this!'''
@@ -26,10 +27,12 @@ class DrawnEntity():
         if self.to_send in drawn_list:
             drawn_list.remove(self.to_send)
         self.to_send = (self.entities, self.pos, self.priority)
+        self.is_drawn = False
     def draw(self) -> None:
         '''Adds the entity to the draw list'''
         self.stop_draw()
         drawn_list.append(self.to_send)
+        self.is_drawn = True
     def update_priority(self, priority):
         '''Changes priority but text needs to be redrawn'''
         self.priority = priority
@@ -133,10 +136,11 @@ class Note(Sprite):
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
-    def __init__(self, delta, func:Callable, repeats=False) -> None:
+    def __init__(self, delta, func:Callable, repeats=False, *args) -> None:
         self.repeats = repeats
         self.needed_time = Counters.ticks + delta*TPS_CAP
         self.func = func
+        self.args = args
         if repeats:
             self.delta = delta
         delta_time_list.append(self)
@@ -147,9 +151,33 @@ class Wait():
             return True
     def run(self):
         '''Runs the function, repeats if its on repeat'''
-        self.func()
+        self.func(*self.args)
         if self.repeats:
             self.needed_time+=self.delta*TPS_CAP
         else:
             delta_time_list.remove(self)
             del(self)
+
+class WaitExtendable(Wait):
+    '''Wait class but the time when the function happens can be extended'''
+    def __init__(self, delta, func: Callable[..., Any], *args) -> None:
+        self.activated = False
+        super().__init__(delta, func, True, *args)
+    def set_time(self, time:int|float=-1):
+        '''
+        Sets timer to time seconds\n
+        If it is negative, then use the default
+        '''
+        self.activated = True
+        if time < 0:
+            self.needed_time = self.delta*TPS_CAP + Counters.ticks
+        else:
+            self.needed_time = time*TPS_CAP + Counters.ticks
+    def is_true(self):
+        if self.activated:
+            return super().is_true()
+        return False
+    def run(self):
+        self.activated = False
+        self.func()
+        

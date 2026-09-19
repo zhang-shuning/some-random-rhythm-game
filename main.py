@@ -2,8 +2,9 @@
 # pylint: disable=no-member
 import time
 import pygame
+from typing import Any
 
-from modules.classes import Note, Text, Wait, Sprite
+from modules.classes import Note, Text, Wait, Sprite, WaitExtendable
 from modules.constants import *
 from modules.shared_variables import *
 from modules.scripts import load_images, handle_fblits
@@ -25,8 +26,17 @@ def note_test_wrapper():
     Note(4).draw()
 
 note_test_wrapper()
-
 Wait(3, note_test_wrapper, True)
+
+hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-300), "hit_light")] for x in range(4)]
+for i in hit_lights:
+    i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+
+def _enable_hitlight(n):
+    hit_lights[n][1].set_time()
+    if not hit_lights[n][0].is_drawn:
+        print(delta_time_list, hit_lights[n][1].needed_time, Counters.ticks)
+        hit_lights[n][0].draw()
 
 #Rhythm gaming!
 def _judge_note(lane:int):
@@ -60,13 +70,24 @@ while Flags.running:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
             elif event.key == pygame.K_d:
-                _judge_note(0)
+                _judge_note(0) 
             elif event.key == pygame.K_f:
                 _judge_note(1)
             elif event.key == pygame.K_j:
                 _judge_note(2)
             elif event.key == pygame.K_k:
                 _judge_note(3)
+
+    #Held keys
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_d]:
+        _enable_hitlight(0)
+    if keys[pygame.K_f]:
+        _enable_hitlight(1)
+    if keys[pygame.K_j]:
+        _enable_hitlight(2)
+    if keys[pygame.K_k]:
+        _enable_hitlight(3)
 
     #Get delta time events
     for i in delta_time_list:

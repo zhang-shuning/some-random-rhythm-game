@@ -26,11 +26,18 @@ def _load_image(image_path:str|pathlib.Path, texture_name:str, transparent=False
 def load_images() -> None:
     '''Loads all images and saves them to a dictionary'''
     print("Loading images...")
-    assets_folder = pathlib.Path("assets/textures")
-    for item in assets_folder.rglob("*"):
+    textures_folder = pathlib.Path("assets/textures")
+    transparent_texture_folder = pathlib.Path("assets/textures-transparent")
+
+    for item in textures_folder.rglob("*"):
         if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
             print(item.name)
             _load_image(item, item.stem)
+    
+    for item in transparent_texture_folder.rglob("*"):
+        if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
+            print(item.name)
+            _load_image(item, item.stem, transparent=True)
 
 def handle_fblits():
     '''Updates fblits list from the drawn list'''
