@@ -53,7 +53,6 @@ class DrawnEntity():
         y = self.pos[1] - surface.get_height() // 2
         return (x, y)
 
-
 class Text(DrawnEntity):
     '''This class is for text on screen'''
     def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30,
@@ -163,7 +162,7 @@ class Note(Sprite):
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
-    def __init__(self, delta, func:Callable, repeats=False, *args) -> None:
+    def __init__(self, delta, func:Callable, *args, repeats=False) -> None:
         self.repeats = repeats
         self.needed_time = Counters.ticks + delta*TPS_CAP
         self.func = func
@@ -192,7 +191,7 @@ class WaitExtendable(Wait):
     '''Wait class but the time when the function happens can be extended'''
     def __init__(self, delta, func: Callable[..., Any], *args) -> None:
         self.activated = False
-        super().__init__(delta, func, True, *args)
+        super().__init__(delta, func, *args, repeats=True)
 
     def set_time(self, time:int|float=-1):
         '''
@@ -210,8 +209,8 @@ class WaitExtendable(Wait):
         if self.activated:
             return super().time_passed()
         return False
+
     @override
     def run(self):
         self.activated = False
         self.func()
-        
