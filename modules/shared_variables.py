@@ -18,6 +18,7 @@ delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 class Flags():
     '''Stores all the flags'''
     running = True
+    score_updated = False
 
 class Counters():
     '''Stores all the counters'''

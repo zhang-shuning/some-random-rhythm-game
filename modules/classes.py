@@ -90,7 +90,6 @@ class Note(Sprite):
         self.draw()
         note_list[key-1].append(self)
         self.tick_needed = TIME_NEEDED + Counters.ticks
-        print(TIME_NEEDED, self.tick_needed)
 
     def move(self) -> None:
         '''Function that moves the note'''
@@ -123,7 +122,7 @@ class Note(Sprite):
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed-range <= self.tick_needed <= self.tick_needed+range:
+        if self.tick_needed-range <= Counters.ticks <= self.tick_needed+range:
             return True
         return False
 
@@ -148,7 +147,6 @@ class Wait():
             return True
     def run(self):
         '''Runs the function, repeats if its on repeat'''
-        print(f"needed tick {self.needed_time} current tick {Counters.ticks}")
         self.func()
         if self.repeats:
             self.needed_time+=self.delta*TPS_CAP

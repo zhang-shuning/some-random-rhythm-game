@@ -29,7 +29,12 @@ note_test_wrapper()
 Wait(3, note_test_wrapper, True)
 
 #Rhythm gaming!
-cur_score = 0
+def _judge_note(lane:int):
+    if len(note_list[lane]) !=0:
+        cur_score = note_list[lane][0].judge()
+        if cur_score != -1:
+            Counters.score += cur_score
+            Flags.score_updated = True
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
@@ -55,25 +60,13 @@ while Flags.running:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
             elif event.key == pygame.K_d:
-                if len(note_list[0]) !=0:
-                    cur_score = note_list[0][0].judge()
-                    if cur_score != -1:
-                        Counters.score += cur_score
+                _judge_note(0)
             elif event.key == pygame.K_f:
-                if len(note_list[1]) !=0:
-                    cur_score = note_list[1][0].judge()
-                    if cur_score != -1:
-                        Counters.score += cur_score
+                _judge_note(1)
             elif event.key == pygame.K_j:
-                if len(note_list[2]) !=0:
-                    cur_score = note_list[2][0].judge()
-                    if cur_score != -1:
-                        Counters.score += cur_score
+                _judge_note(2)
             elif event.key == pygame.K_k:
-                if len(note_list[3]) !=0:
-                    cur_score = note_list[3][0].judge()
-                    if cur_score != -1:
-                        Counters.score += cur_score
+                _judge_note(3)
 
     #Get delta time events
     for i in delta_time_list:
@@ -84,12 +77,17 @@ while Flags.running:
     if Counters.ticks % FRAME_FREQUENCY == 0:
         #Clear screen
         screen.fill((0,0,0))
+        #Update score
+        if Flags.score_updated:
+            score_text.update_and_draw_text(f"{Counters.score}")
         #Draw screen
         handle_fblits()
         screen.fblits(fblits_list)
+        #Draw notes
         for note_row in note_list:
             for note in note_row:
                 note.move()
+
         pygame.display.flip()
 
     #Next tick
