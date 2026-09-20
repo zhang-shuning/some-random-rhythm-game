@@ -151,7 +151,7 @@ class Note(Sprite):
         drawn_list.remove(self.to_send)
 
 def calculate_acc():
-    Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._300+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
+    Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
 
 def judge_note(lane:int):
     if len(note_list[lane]) !=0:

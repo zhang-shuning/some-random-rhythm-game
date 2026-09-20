@@ -29,6 +29,12 @@ def note_test_wrapper():
                 scenes.gameplay.Note(random_2).draw()
                 break
 
+def truncate_to_5_chars(string):
+    if len(string) <= 5:
+        return string
+    else:
+        return string[0:4]
+
 note_test_wrapper()
 Wait(.2, note_test_wrapper, repeats=True)
 
@@ -100,7 +106,7 @@ while Flags.running:
         if Flags.note_hit_or_missed:
             combo_text.update_and_draw_text(f"{Counters.combo}")
             scenes.gameplay.calculate_acc()
-            acc_text.update_and_draw_text(f"{Counters.acc}")
+            acc_text.update_and_draw_text(truncate_to_5_chars(str(Counters.acc)))
             Flags.note_hit_or_missed = False
         #Draw screen
         handle_fblits()
