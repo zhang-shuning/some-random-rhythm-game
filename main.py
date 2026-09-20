@@ -20,10 +20,17 @@ scenes.gameplay.draw_assets()
 
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
-    scenes.gameplay.Note(randint(1,4)).draw()
+    random_1 = randint(1,4)
+    scenes.gameplay.Note(random_1).draw()
+    if randint(0,3) == 0:
+        while 1:
+            random_2 = randint(1,4)
+            if random_1 != random_2:
+                scenes.gameplay.Note(random_2).draw()
+                break
 
 note_test_wrapper()
-Wait(.25, note_test_wrapper, repeats=True)
+Wait(.2, note_test_wrapper, repeats=True)
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
@@ -93,6 +100,10 @@ while Flags.running:
         for note_row in note_list:
             for note in note_row:
                 note.move()
+
+        for i in destroy_list:
+            i.destroy()
+        destroy_list.clear()
 
         pygame.display.flip()
 

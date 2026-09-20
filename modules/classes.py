@@ -2,11 +2,10 @@
 
 from typing import Any, override
 from collections.abc import Callable
-from collections import deque
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, note_list
+from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict
 from modules.constants import *
 
 _logger = logging.getLogger(__name__)
@@ -164,3 +163,9 @@ class WaitExtendable(Wait):
     def run(self):
         self.activated = False
         self.func()
+
+class Button(Text):
+    def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30,
+                text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
+                rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None) -> None:
+        super().__init__(text, pos, priority, font_size, text_color, bg_color)

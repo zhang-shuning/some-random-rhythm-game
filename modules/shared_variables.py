@@ -12,6 +12,7 @@ surface_dict = {} #The surface dict will store drawn lists
 images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
 drawn_list = [] # [[surface, pos, priority]]
 fblits_list = [] # list for fblits
+destroy_list = []
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 
 

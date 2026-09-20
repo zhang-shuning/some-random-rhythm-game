@@ -11,9 +11,9 @@ hit = pygame.Sound("assets/sfx/hit.wav")
 keypress = pygame.Sound("assets/sfx/keypress.wav")
 miss = pygame.Sound("assets/sfx/miss.wav")
 
-hit.set_volume(.2)
-keypress.set_volume(.3)
-miss.set_volume(.75)
+hit.set_volume(.15)
+keypress.set_volume(.25)
+miss.set_volume(.4)
 
 
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
@@ -51,7 +51,6 @@ class JudgementTextHandler(Wait):
                 return False
         return super().time_passed()
     def run(self):
-        print("ran")
         if self.to_stop_drawing == 0:
             miss_text.stop_draw()
         if self.to_stop_drawing == 50:
@@ -104,7 +103,7 @@ class Note(Sprite):
         if self.pos[1] > VERTICAL_SIZE:
             JTF.add_to_q(0)
             miss.play()
-            self.destroy()
+            self.q_destroy()
 
     def judge(self) -> int:
         '''
@@ -133,6 +132,10 @@ class Note(Sprite):
         if self.tick_needed-range <= Counters.ticks <= self.tick_needed+range:
             return True
         return False
+
+    def q_destroy(self):
+        '''Queues the the note to be destroyed at the end of the frame'''
+        destroy_list.append(self)
 
     def destroy(self):
         '''Removes itself from note and draw list'''
