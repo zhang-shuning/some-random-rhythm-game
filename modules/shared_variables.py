@@ -20,13 +20,19 @@ class Flags():
     '''Stores all the flags'''
     running = True
     score_updated = False
+    note_hit_or_missed = False
 
 class Counters():
     '''Stores all the counters'''
     ticks = 0
     score = 0
     combo = 0
-    acc = 0
+    acc = 0.0
+    _300 = 0
+    _200 = 0
+    _100 = 0
+    _50 = 0
+    miss = 0
 
 #Gameplay variables
 note_list:list[list] = [[],[],[],[]] #List of all notes on screen

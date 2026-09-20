@@ -14,7 +14,8 @@ _logger.setLevel(logging.DEBUG)
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
     def __init__(self, priority:int, pos:tuple[int,int], origin = (0,0), center=False) -> None:
-        self.pos = pos
+        self.orig_pos = pos
+        self.pos=pos
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
         self.to_send = ([], 0)
@@ -50,10 +51,10 @@ class DrawnEntity():
 
     def change_pos(self, surface):
         if self.origin != (0,0):
-            x = round(self.pos[0] - surface.get_width() * self.origin[0])
-            y = round(self.pos[1] - surface.get_height() * self.origin[1])
+            x = int(self.orig_pos[0] - surface.get_width() * self.origin[0])
+            y = int(self.orig_pos[1] - surface.get_height() * self.origin[1])
+            #print(f"origin {self.origin} old pos {self.orig_pos} new pos {(x,y)}")
             self.pos = (x,y)
-            print(self.pos)
 
 
 class Text(DrawnEntity):
@@ -87,6 +88,7 @@ class Text(DrawnEntity):
         new_text = self.get_text()
         self.entities[self.entities.index(self.current_text)] = new_text
         self.current_text = new_text
+        super().setup(entity_index=0)
 
     def update_and_stop_text(self, text):
         '''Stops text if it's running, and updates text'''

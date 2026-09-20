@@ -35,7 +35,10 @@ Wait(.2, note_test_wrapper, repeats=True)
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
-score_text = Text("score: 0", (0, 25), 100)
+score_text = Text("0", (0, 25), 100)
+acc_text = Text("0", (0, 75), 100)
+combo_text = Text("0", (0, 50), 100)
+
 score_text.draw()
 
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
@@ -93,6 +96,12 @@ while Flags.running:
         #Update score
         if Flags.score_updated:
             score_text.update_and_draw_text(f"{Counters.score}")
+            Flags.score_updated = False
+        if Flags.note_hit_or_missed:
+            combo_text.update_and_draw_text(f"{Counters.combo}")
+            scenes.gameplay.calculate_acc()
+            acc_text.update_and_draw_text(f"{Counters.acc}")
+            Flags.note_hit_or_missed = False
         #Draw screen
         handle_fblits()
         screen.fblits(fblits_list)

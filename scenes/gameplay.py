@@ -114,17 +114,22 @@ class Note(Sprite):
         #Excellent
         if self._within_range(EXCELLENT_RANGE):
             self.destroy()
+            Counters._300 += 1
             return 300
         if self._within_range(GOOD_RANGE):
             self.destroy()
+            Counters._200 += 1
             return 200
         if self._within_range(OK_RANGE):
             self.destroy()
+            Counters._100 += 1
             return 100
         if self._within_range(BAD_RANGE):
             self.destroy()
+            Counters._50 += 1
             return 50
         if self._within_range(MISS_RANGE):
+            Counters.miss += 1
             return 0
         return -1
 
@@ -136,11 +141,17 @@ class Note(Sprite):
     def q_destroy(self):
         '''Queues the the note to be destroyed at the end of the frame'''
         destroy_list.append(self)
+        Flags.note_hit_or_missed = True
+        Counters.combo = 0
+        Counters.miss += 1
 
     def destroy(self):
         '''Removes itself from note and draw list'''
         note_list[self.key-1].remove(self)
         drawn_list.remove(self.to_send)
+
+def calculate_acc():
+    Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._300+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
 
 def judge_note(lane:int):
     if len(note_list[lane]) !=0:
@@ -148,14 +159,19 @@ def judge_note(lane:int):
         #Handle point scoring
         if cur_score == -1:
             return
+
+        Flags.note_hit_or_missed = True
+
         if cur_score == 0:
             JTF.add_to_q(0)
             miss.play()
+            Counters.combo = 0
             return
         #Draws score text
         JTF.add_to_q(cur_score)
         hit.play()
 
+        Counters.combo += 1
         Counters.score += cur_score
         Flags.score_updated = True
 
