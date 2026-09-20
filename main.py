@@ -53,9 +53,12 @@ def unpause():
     restart_button.stop_draw()
     exit_button.stop_draw()
 
+def stop_game():
+    Flags.running=False
+
 unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
 restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
-exit_button = Button("Return to game", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+exit_button = Button("Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=stop_game)
 
 score_text.draw()
 acc_text.draw()
