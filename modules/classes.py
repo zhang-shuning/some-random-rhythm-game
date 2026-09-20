@@ -5,7 +5,7 @@ from collections.abc import Callable
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict
+from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, rect_list
 from modules.constants import *
 
 _logger = logging.getLogger(__name__)
@@ -175,7 +175,29 @@ class WaitExtendable(Wait):
         self.func()
 
 class Button(Text):
-    def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30,
+    def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30, origin = (0,0),
                 text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
                 rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None) -> None:
-        super().__init__(text, pos, priority, font_size, text_color, bg_color)
+        self.rect_color = rect_color
+        self.rect_size = rect_size
+        self.on_press = on_press
+        self.cur_rect_and_func = (pygame.Rect(), on_press)
+        super().__init__(text, pos, priority, font_size, origin, text_color, bg_color)
+    def update_rect(self):
+        self.cur_rect_and_func = (pygame.Rect(self.pos, self.rect_size), self.on_press)
+        rect_list.append(self.cur_rect_and_func)
+    @override
+    def setup(self, entity_index=0):
+        surface = pygame.Surface(size=self.rect_size)
+        surface.fill(self.rect_color)
+        self.entities.append(surface)
+        super().setup(entity_index)
+    @override
+    def draw(self) -> None:
+        super().draw()
+        self.update_rect()
+    @override
+    def stop_draw(self) -> None:
+        if self.cur_rect_and_func in rect_list:
+            rect_list.remove(self.cur_rect_and_func)
+        return super().stop_draw()

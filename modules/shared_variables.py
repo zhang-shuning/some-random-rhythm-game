@@ -2,17 +2,18 @@
 # pylint: disable=invalid-name
 
 from typing import TYPE_CHECKING
-import time
-
 if TYPE_CHECKING:
     from classes import Wait
+    from pygame import Rect
+    from collections.abc import Callable
 
 #Setup/internal buffers
 surface_dict = {} #The surface dict will store drawn lists
 images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
 drawn_list = [] # [[surface, pos, priority]]
 fblits_list = [] # list for fblits
-destroy_list = []
+destroy_list = [] # List of object to be destroyed at end of frame
+rect_list:list[tuple[Rect, Callable]] = [] #List of buttons
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 
 
@@ -22,6 +23,7 @@ class Flags():
     score_updated = False
     note_hit_or_missed = False
     in_game = True
+    is_paused = False
 
 class Counters():
     '''Stores all the counters'''

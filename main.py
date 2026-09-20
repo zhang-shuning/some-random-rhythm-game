@@ -3,7 +3,7 @@
 from random import randint
 import pygame
 
-from modules.classes import Text, Wait, Sprite, WaitExtendable
+from modules.classes import Text, Wait, Button
 from modules.constants import *
 from modules.shared_variables import *
 from modules.scripts import load_images, handle_fblits
@@ -39,6 +39,24 @@ score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
 acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
 combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
+def pause():
+    Flags.is_paused = True
+    Flags.in_game = False
+    unpause_button.draw()
+    restart_button.draw()
+    exit_button.draw()
+
+def unpause():
+    Flags.is_paused = False
+    Flags.in_game = True
+    unpause_button.stop_draw()
+    restart_button.stop_draw()
+    exit_button.stop_draw()
+
+unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+exit_button = Button("Return to game", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+
 score_text.draw()
 acc_text.draw()
 combo_text.draw()
@@ -54,6 +72,9 @@ while Flags.running:
         if event.type == pygame.QUIT:
             Flags.running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            for i in rect_list:
+                if i[0].collidepoint(event.pos):
+                    i[1]()
             if DEBUG:
                 mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
                 print(f"mouse pos {pygame.mouse.get_pos()}")
@@ -74,7 +95,11 @@ while Flags.running:
                     scenes.gameplay.judge_note(3)
                     scenes.gameplay.keypress.play()
             if event.key == pygame.K_1:
-                Flags.in_game = not Flags.in_game
+                if not Flags.is_paused:
+                    pause()
+                else:
+                    unpause()
+
 
     #Held keys
     keys = pygame.key.get_pressed()
@@ -98,7 +123,7 @@ while Flags.running:
     #Rendering
     if Counters.game_ticks % FRAME_FREQUENCY == 0:
         #Clear screen
-        screen.fill((0,0,0))
+        screen.fill((100,0,0))
         #Update score
         if Flags.score_updated:
             score_text.update_and_draw_text(f"{Counters.score}")
