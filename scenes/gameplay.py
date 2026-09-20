@@ -2,7 +2,7 @@ from collections import deque
 
 import pygame
 
-from modules.classes import Wait, Text, Sprite
+from modules.classes import Wait, Text, Sprite, WaitExtendable
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -84,6 +84,8 @@ class JudgementTextHandler(Wait):
     def add_to_q(self, judgement_value):
         self.q.append(judgement_value)
 
+JTF = JudgementTextHandler()
+
 class Note(Sprite):
     '''Class for not long notes'''
     def __init__(self, key:int) -> None:
@@ -100,6 +102,8 @@ class Note(Sprite):
         self.pos[1] += SCROLL_SPEED
         #Missed note
         if self.pos[1] > VERTICAL_SIZE:
+            JTF.add_to_q(0)
+            miss.play()
             self.destroy()
 
     def judge(self) -> int:
@@ -134,6 +138,32 @@ class Note(Sprite):
         '''Removes itself from note and draw list'''
         note_list[self.key-1].remove(self)
         drawn_list.remove(self.to_send)
+
+def judge_note(lane:int):
+    if len(note_list[lane]) !=0:
+        cur_score = note_list[lane][0].judge()
+        #Handle point scoring
+        if cur_score == -1:
+            return
+        if cur_score == 0:
+            JTF.add_to_q(0)
+            miss.play()
+            return
+        #Draws score text
+        JTF.add_to_q(cur_score)
+        hit.play()
+
+        Counters.score += cur_score
+        Flags.score_updated = True
+
+hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-300), "hit_light")] for x in range(4)]
+for i in hit_lights:
+    i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+def enable_hitlight(n):
+    '''Enables the hitlight'''
+    hit_lights[n][1].set_time()
+    if not hit_lights[n][0].is_drawn:
+        hit_lights[n][0].draw()
 
 def draw_assets():
     chart.draw()
