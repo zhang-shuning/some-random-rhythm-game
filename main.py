@@ -2,7 +2,7 @@
 # pylint: disable=no-member
 from collections.abc import Callable
 from collections import deque
-import time
+from random import randint
 import pygame
 from typing import Any, Callable
 
@@ -22,13 +22,10 @@ Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgem
 
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
-    Note(1).draw()
-    Note(2).draw()
-    Note(3).draw()
-    Note(4).draw()
+    Note(randint(1,4)).draw()
 
 note_test_wrapper()
-Wait(3, note_test_wrapper, repeats=True)
+Wait(.25, note_test_wrapper, repeats=True)
 
 #Rhythm gaming!
 def _judge_note(lane:int):
