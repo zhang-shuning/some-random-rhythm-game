@@ -21,9 +21,11 @@ class Flags():
     running = True
     score_updated = False
     note_hit_or_missed = False
+    in_game = True
 
 class Counters():
     '''Stores all the counters'''
+    game_ticks = 0
     ticks = 0
     score = 0
     combo = 0

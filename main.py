@@ -30,7 +30,7 @@ def note_test_wrapper():
                 break
 
 note_test_wrapper()
-Wait(.2, note_test_wrapper, repeats=True)
+Wait(.2, note_test_wrapper, repeats=True, use_game_tick=True)
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
@@ -60,31 +60,35 @@ while Flags.running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
-            elif event.key == pygame.K_d:
-                scenes.gameplay.judge_note(0)
-                scenes.gameplay.keypress.play()
-            elif event.key == pygame.K_f:
-                scenes.gameplay.judge_note(1)
-                scenes.gameplay.keypress.play()
-            elif event.key == pygame.K_j:
-                scenes.gameplay.judge_note(2)
-                scenes.gameplay.keypress.play()
-            elif event.key == pygame.K_k:
-                scenes.gameplay.judge_note(3)
-                scenes.gameplay.keypress.play()
+            if Flags.in_game:
+                if event.key == pygame.K_d:
+                    scenes.gameplay.judge_note(0)
+                    scenes.gameplay.keypress.play()
+                elif event.key == pygame.K_f:
+                    scenes.gameplay.judge_note(1)
+                    scenes.gameplay.keypress.play()
+                elif event.key == pygame.K_j:
+                    scenes.gameplay.judge_note(2)
+                    scenes.gameplay.keypress.play()
+                elif event.key == pygame.K_k:
+                    scenes.gameplay.judge_note(3)
+                    scenes.gameplay.keypress.play()
+            if event.key == pygame.K_1:
+                Flags.in_game = not Flags.in_game
 
     #Held keys
     keys = pygame.key.get_pressed()
     #Only check if the frame is being drawn for hitlights because hitlights are rendered
-    if Counters.ticks % FRAME_FREQUENCY == 0:
-        if keys[pygame.K_d]:
-            scenes.gameplay.enable_hitlight(0)
-        if keys[pygame.K_f]:
-            scenes.gameplay.enable_hitlight(1)
-        if keys[pygame.K_j]:
-            scenes.gameplay.enable_hitlight(2)
-        if keys[pygame.K_k]:
-            scenes.gameplay.enable_hitlight(3)
+    if Counters.game_ticks % FRAME_FREQUENCY == 0:
+        if Flags.in_game:
+            if keys[pygame.K_d]:
+                scenes.gameplay.enable_hitlight(0)
+            if keys[pygame.K_f]:
+                scenes.gameplay.enable_hitlight(1)
+            if keys[pygame.K_j]:
+                scenes.gameplay.enable_hitlight(2)
+            if keys[pygame.K_k]:
+                scenes.gameplay.enable_hitlight(3)
 
     #Get delta time events
     for i in delta_time_list:
@@ -92,7 +96,7 @@ while Flags.running:
             i.run()
 
     #Rendering
-    if Counters.ticks % FRAME_FREQUENCY == 0:
+    if Counters.game_ticks % FRAME_FREQUENCY == 0:
         #Clear screen
         screen.fill((0,0,0))
         #Update score
@@ -108,9 +112,10 @@ while Flags.running:
         handle_fblits()
         screen.fblits(fblits_list)
         #Draw notes
-        for note_row in note_list:
-            for note in note_row:
-                note.move()
+        if Flags.in_game:
+            for note_row in note_list:
+                for note in note_row:
+                    note.move()
 
         for i in destroy_list:
             i.destroy()
@@ -119,5 +124,7 @@ while Flags.running:
         pygame.display.flip()
 
     #Next tick
+    if Flags.in_game:
+        Counters.game_ticks+=1
     Counters.ticks+=1
     clock.tick(TPS_CAP)

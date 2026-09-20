@@ -117,9 +117,13 @@ class Sprite(DrawnEntity):
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
-    def __init__(self, delta, func:Callable, *args, repeats=False) -> None:
+    def __init__(self, delta, func:Callable, *args, repeats=False, use_game_tick=False) -> None:
+        if use_game_tick:
+            self.tick = lambda:Counters.game_ticks
+        else:
+            self.tick = lambda:Counters.ticks
         self.repeats = repeats
-        self.needed_time = Counters.ticks + delta*TPS_CAP
+        self.needed_time = self.tick() + delta*TPS_CAP
         self.func = func
         self.args = args
         if repeats:
@@ -128,7 +132,7 @@ class Wait():
 
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
-        if Counters.ticks < self.needed_time:
+        if self.tick() < self.needed_time:
             return False
         else:
             return True
@@ -155,9 +159,9 @@ class WaitExtendable(Wait):
         '''
         self.activated = True
         if time < 0:
-            self.needed_time = self.delta*TPS_CAP + Counters.ticks
+            self.needed_time = self.delta*TPS_CAP + self.tick()
         else:
-            self.needed_time = time*TPS_CAP + Counters.ticks
+            self.needed_time = time*TPS_CAP + self.tick()
 
     @override
     def time_passed(self):

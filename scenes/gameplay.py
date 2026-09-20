@@ -19,11 +19,11 @@ miss.set_volume(.6)
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
 judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
-excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(0, 150, 255), origin=(.5,.5))
-good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(34, 139, 34), origin=(.5,.5))
-ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(175, 225, 175), origin=(.5,.5))
-bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(211, 211, 211), origin=(.5,.5))
-miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=200, text_color=(255, 0, 0), origin=(.5,.5))
+excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=120, text_color=(0, 150, 255), origin=(.5,.5))
+good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(34, 139, 34), origin=(.5,.5))
+ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(175, 225, 175), origin=(.5,.5))
+bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 211, 211), origin=(.5,.5))
+miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
 
 class JudgementTextHandler(Wait):
     '''Handles the text that appears when a note is judged.'''
@@ -34,11 +34,12 @@ class JudgementTextHandler(Wait):
         self.to_stop_drawing = -1
         self.needed_time = -1
         self.to_draw = -1
+        self.tick = lambda:Counters.game_ticks
         delta_time_list.append(self)
     def time_passed(self):
         if self.q and self.to_draw == -1:
             self.to_draw = self.q.popleft()
-            self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+            self.needed_time = Counters.game_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
             if self.to_stop_drawing == -1:
                 return True
             return False
@@ -79,7 +80,7 @@ class JudgementTextHandler(Wait):
             excellent_text.draw()
             self.to_stop_drawing = 300
         self.to_draw = -1
-        self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+        self.needed_time = Counters.game_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
     def add_to_q(self, judgement_value):
         self.q.append(judgement_value)
 
@@ -94,7 +95,7 @@ class Note(Sprite):
         super().__init__(-8, self.pos, "note", origin=(0,0))
         self.draw()
         note_list[key-1].append(self)
-        self.tick_needed = TIME_NEEDED + Counters.ticks
+        self.tick_needed = TIME_NEEDED + Counters.game_ticks
 
     def move(self) -> None:
         '''Function that moves the note'''
@@ -134,7 +135,7 @@ class Note(Sprite):
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed-range <= Counters.ticks <= self.tick_needed+range:
+        if self.tick_needed-range <= Counters.game_ticks <= self.tick_needed+range:
             return True
         return False
 
@@ -149,6 +150,9 @@ class Note(Sprite):
         '''Removes itself from note and draw list'''
         note_list[self.key-1].remove(self)
         drawn_list.remove(self.to_send)
+
+class LongNote(Note):
+    pass
 
 def calculate_acc():
     Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
