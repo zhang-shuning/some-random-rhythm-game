@@ -2,6 +2,7 @@
 
 from typing import Any, override
 from collections.abc import Callable
+from collections import deque
 import logging
 import pygame
 
@@ -108,57 +109,6 @@ class Sprite(DrawnEntity):
     @override
     def setup(self) -> None:
         self.entities.append(self.image)
-
-class Note(Sprite):
-    '''Class for not long notes'''
-    def __init__(self, key:int) -> None:
-        '''Pos is the key needed'''
-        self.pos = [360+200*key,0]
-        self.key = key
-        super().__init__(-8, self.pos, "note")
-        self.draw()
-        note_list[key-1].append(self)
-        self.tick_needed = TIME_NEEDED + Counters.ticks
-
-    def move(self) -> None:
-        '''Function that moves the note'''
-        self.pos[1] += SCROLL_SPEED
-        #Missed note
-        if self.pos[1] > VERTICAL_SIZE:
-            self.destroy()
-
-    def judge(self) -> int:
-        '''
-        Note judgment\n
-        Returns judgement score, if the judgement is not in range, return -1\n
-        If it is in range, destroy the note
-        '''
-        #Excellent
-        if self._within_range(EXCELLENT_RANGE):
-            self.destroy()
-            return 300
-        if self._within_range(GOOD_RANGE):
-            self.destroy()
-            return 200
-        if self._within_range(OK_RANGE):
-            self.destroy()
-            return 100
-        if self._within_range(BAD_RANGE):
-            self.destroy()
-            return 50
-        if self._within_range(MISS_RANGE):
-            return 0
-        return -1
-
-    def _within_range(self, range:int) -> bool:
-        if self.tick_needed-range <= Counters.ticks <= self.tick_needed+range:
-            return True
-        return False
-
-    def destroy(self):
-        '''Removes itself from note and draw list'''
-        note_list[self.key-1].remove(self)
-        drawn_list.remove(self.to_send)
 
 class Wait():
     '''Class that is used to run code in delta ticks'''

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import time
 
 if TYPE_CHECKING:
-    from classes import Wait, Note
+    from classes import Wait
 
 #Setup/internal buffers
 surface_dict = {} #The surface dict will store drawn lists

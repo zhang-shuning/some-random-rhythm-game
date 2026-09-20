@@ -1,12 +1,9 @@
 '''Main file for the game'''
 # pylint: disable=no-member
-from collections.abc import Callable
-from collections import deque
 from random import randint
 import pygame
-from typing import Any, Callable
 
-from modules.classes import Note, Text, Wait, Sprite, WaitExtendable
+from modules.classes import Text, Wait, Sprite, WaitExtendable
 from modules.constants import *
 from modules.shared_variables import *
 from modules.scripts import load_images, handle_fblits
@@ -17,12 +14,13 @@ clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
 
-Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart").draw()
-Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line").draw()
+import scenes.gameplay
+
+scenes.gameplay.draw_assets()
 
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
-    Note(randint(1,4)).draw()
+    scenes.gameplay.Note(randint(1,4)).draw()
 
 note_test_wrapper()
 Wait(.25, note_test_wrapper, repeats=True)
@@ -36,10 +34,12 @@ def _judge_note(lane:int):
             return
         if cur_score == 0:
             JTF.add_to_q(0)
+            scenes.gameplay.miss.play()
             return
 
         #Draws score text
         JTF.add_to_q(cur_score)
+        scenes.gameplay.hit.play()
 
         Counters.score += cur_score
         Flags.score_updated = True
@@ -59,71 +59,7 @@ fps_text = Text("0", (0, 0), 100)
 score_text = Text("score: 0", (0, 25), 100)
 score_text.draw()
 
-excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(0, 150, 255))
-good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(34, 139, 34))
-ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(175, 225, 175))
-bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(211, 211, 211))
-miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=200, text_color=(255, 0, 0))
-
-class JudgementTextHandler(Wait):
-    #In run(), check if q isn't empty
-    #If it is, then set the time to MINIMUM_FRAME -1
-    def __init__(self) -> None:
-        self.q = deque()
-        self.to_stop_drawing = -1
-        self.needed_time = -1
-        self.to_draw = -1
-        delta_time_list.append(self)
-    def time_passed(self):
-        if self.q and self.to_draw == -1:
-            self.to_draw = self.q.popleft()
-            self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
-            if self.to_stop_drawing == -1:
-                return True
-            return False
-        if self.needed_time == -1:
-            return False
-        if self.q:
-            time_to_check = (MINIMUM_JUDGEMENT_TEXT_FRAMES-1)*FRAME_FREQUENCY
-            if self.needed_time > time_to_check:
-                self.needed_time = time_to_check
-                return False
-        return super().time_passed()
-    def run(self):
-        print("ran")
-        if self.to_stop_drawing == 0:
-            miss_text.stop_draw()
-        if self.to_stop_drawing == 50:
-            bad_text.stop_draw()
-        if self.to_stop_drawing == 100:
-            ok_text.stop_draw()
-        if self.to_stop_drawing == 200:
-            good_text.stop_draw()
-        if self.to_stop_drawing == 300:
-            excellent_text.stop_draw()
-        self.to_stop_drawing = -1
-
-        if self.to_draw == 0:
-            miss_text.draw(True)
-            self.to_stop_drawing = 0
-        elif self.to_draw == 50:
-            bad_text.draw(True)
-            self.to_stop_drawing = 50
-        elif self.to_draw == 100:
-            ok_text.draw(True)
-            self.to_stop_drawing = 100
-        elif self.to_draw == 200:
-            good_text.draw(True)
-            self.to_stop_drawing = 200
-        elif self.to_draw == 300:
-            excellent_text.draw(True)
-            self.to_stop_drawing = 300
-        self.to_draw = -1
-        self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
-    def add_to_q(self, judgement_value):
-        self.q.append(judgement_value)
-
-JTF = JudgementTextHandler()
+JTF = scenes.gameplay.JudgementTextHandler()
 
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
@@ -143,13 +79,17 @@ while Flags.running:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
             elif event.key == pygame.K_d:
-                _judge_note(0) 
+                _judge_note(0)
+                scenes.gameplay.keypress.play()
             elif event.key == pygame.K_f:
                 _judge_note(1)
+                scenes.gameplay.keypress.play()
             elif event.key == pygame.K_j:
                 _judge_note(2)
+                scenes.gameplay.keypress.play()
             elif event.key == pygame.K_k:
                 _judge_note(3)
+                scenes.gameplay.keypress.play()
 
     #Held keys
     keys = pygame.key.get_pressed()
