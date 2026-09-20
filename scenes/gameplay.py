@@ -11,9 +11,9 @@ hit = pygame.Sound("assets/sfx/hit.wav")
 keypress = pygame.Sound("assets/sfx/keypress.wav")
 miss = pygame.Sound("assets/sfx/miss.wav")
 
-hit.set_volume(.15)
-keypress.set_volume(.25)
-miss.set_volume(.4)
+hit.set_volume(.1)
+keypress.set_volume(.2)
+miss.set_volume(.6)
 
 
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")

@@ -29,25 +29,21 @@ def note_test_wrapper():
                 scenes.gameplay.Note(random_2).draw()
                 break
 
-def truncate_to_5_chars(string):
-    if len(string) <= 5:
-        return string
-    else:
-        return string[0:4]
-
 note_test_wrapper()
 Wait(.2, note_test_wrapper, repeats=True)
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
-score_text = Text("0", (0, 25), 100)
-acc_text = Text("0", (0, 75), 100)
-combo_text = Text("0", (0, 50), 100)
+score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
+acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
+combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
 score_text.draw()
+acc_text.draw()
+combo_text.draw()
 
-def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
+def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True)
 
@@ -106,7 +102,7 @@ while Flags.running:
         if Flags.note_hit_or_missed:
             combo_text.update_and_draw_text(f"{Counters.combo}")
             scenes.gameplay.calculate_acc()
-            acc_text.update_and_draw_text(truncate_to_5_chars(str(Counters.acc)))
+            acc_text.update_and_draw_text(f"{Counters.acc:.2f}%")
             Flags.note_hit_or_missed = False
         #Draw screen
         handle_fblits()
