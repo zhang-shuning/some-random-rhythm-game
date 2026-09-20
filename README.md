@@ -1,5 +1,5 @@
 # some-random-rhythm-game
-Pygame rhythm game where you have modifier keys and buttons... for now
+A normal VSRG made with pygame-ce
 
 # Python Version
 This game is made using features that require python3.14+, lower python versions likely won't work.
