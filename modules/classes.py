@@ -13,33 +13,34 @@ _logger.setLevel(logging.DEBUG)
 
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
-    def __init__(self, priority:int, pos:tuple[int,int]) -> None:
+    def __init__(self, priority:int, pos:tuple[int,int], origin = (0,0), center=False) -> None:
         self.pos = pos
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
         self.to_send = ([], 0)
         self.is_drawn = False
+        self.origin = origin
+        if center:
+            self.origin = (.5,.5)
         self.setup()
 
-    def setup(self) -> None:
+    def setup(self, entity_index=0) -> None:
         '''
         Where the entities get appended to the entitylist.\n
         Meant to be overridden.
         '''
+        self.change_pos(self.entities[entity_index])
 
-    def stop_draw(self, center_pos = False, entity_index=0) -> None:
+    def stop_draw(self) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
         if self.to_send in drawn_list:
             drawn_list.remove(self.to_send)
-        if center_pos:
-            self.to_send = [self.entities, self.center_pos(self.entities[entity_index]), self.priority]
-        else:
-            self.to_send = [self.entities, self.pos, self.priority]
+        self.to_send = [self.entities, self.pos, self.priority]
         self.is_drawn = False
 
-    def draw(self, center_pos = False, entity_index=0) -> None:
+    def draw(self) -> None:
         '''Adds the entity to the draw list'''
-        self.stop_draw(center_pos, entity_index)
+        self.stop_draw()
         drawn_list.append(self.to_send)
         self.is_drawn = True
 
@@ -47,26 +48,29 @@ class DrawnEntity():
         '''Changes priority but text needs to be redrawn'''
         self.priority = priority
 
-    def center_pos(self, surface:pygame.Surface) -> tuple[int,int]:
-        '''Returns pos to centered coordinates from surface and coordinates'''
-        x = self.pos[0] - surface.get_width() // 2
-        y = self.pos[1] - surface.get_height() // 2
-        return (x, y)
+    def change_pos(self, surface):
+        if self.origin != (0,0):
+            x = round(self.pos[0] - surface.get_width() * self.origin[0])
+            y = round(self.pos[1] - surface.get_height() * self.origin[1])
+            self.pos = (x,y)
+            print(self.pos)
+
 
 class Text(DrawnEntity):
     '''This class is for text on screen'''
-    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30,
+    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30, origin = (0,0),
                   text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
         self.text = text
         self.font_size = font_size
         self.text_color = text_color
         self.bg_color = bg_color
-        super().__init__(priority, pos)
+        super().__init__(priority, pos, origin=origin)
 
     @override
-    def setup(self):
+    def setup(self, entity_index=0):
         self.current_text = self.get_text()
         self.entities.append(self.current_text)
+        super().setup(entity_index=entity_index)
 
     def get_text(self) -> pygame.Surface:
         '''Returns the text object from the data in the class'''
@@ -96,14 +100,14 @@ class Text(DrawnEntity):
 
 class Sprite(DrawnEntity):
     '''Class with sprites'''
-    def __init__(self, priority, pos, image_name) -> None:
+    def __init__(self, priority, pos, image_name, origin = (0,0)) -> None:
         self.image = images_dict.get(image_name)
         if self.image is None:
             _logger.fatal("Texture %s not found!\nExiting...", image_name)
             Flags.running = False
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
-        super().__init__(priority, pos)
+        super().__init__(priority, pos, origin=origin)
 
     @override
     def setup(self) -> None:

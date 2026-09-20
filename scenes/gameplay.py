@@ -19,11 +19,11 @@ miss.set_volume(.4)
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
 judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
-excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(0, 150, 255))
-good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(34, 139, 34))
-ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(175, 225, 175))
-bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(211, 211, 211))
-miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=200, text_color=(255, 0, 0))
+excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(0, 150, 255), origin=(.5,.5))
+good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(34, 139, 34), origin=(.5,.5))
+ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(175, 225, 175), origin=(.5,.5))
+bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=100, text_color=(211, 211, 211), origin=(.5,.5))
+miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=200, text_color=(255, 0, 0), origin=(.5,.5))
 
 class JudgementTextHandler(Wait):
     '''Handles the text that appears when a note is judged.'''
@@ -64,19 +64,19 @@ class JudgementTextHandler(Wait):
         self.to_stop_drawing = -1
 
         if self.to_draw == 0:
-            miss_text.draw(True)
+            miss_text.draw()
             self.to_stop_drawing = 0
         elif self.to_draw == 50:
-            bad_text.draw(True)
+            bad_text.draw()
             self.to_stop_drawing = 50
         elif self.to_draw == 100:
-            ok_text.draw(True)
+            ok_text.draw()
             self.to_stop_drawing = 100
         elif self.to_draw == 200:
-            good_text.draw(True)
+            good_text.draw()
             self.to_stop_drawing = 200
         elif self.to_draw == 300:
-            excellent_text.draw(True)
+            excellent_text.draw()
             self.to_stop_drawing = 300
         self.to_draw = -1
         self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
@@ -91,7 +91,7 @@ class Note(Sprite):
         '''Pos is the key needed'''
         self.pos = [360+200*key,0]
         self.key = key
-        super().__init__(-8, self.pos, "note")
+        super().__init__(-8, self.pos, "note", origin=(0,0))
         self.draw()
         note_list[key-1].append(self)
         self.tick_needed = TIME_NEEDED + Counters.ticks

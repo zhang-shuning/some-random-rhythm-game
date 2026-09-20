@@ -34,7 +34,7 @@ Wait(.2, note_test_wrapper, repeats=True)
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
-fps_text = Text("0", (0, 0), 100)
+fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 score_text = Text("score: 0", (0, 25), 100)
 score_text.draw()
 
