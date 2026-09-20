@@ -38,19 +38,15 @@ def _judge_note(lane:int):
         if cur_score == -1:
             return
         if cur_score == 0:
-            miss_text.draw(True)
+            JTF.add_to_q(0)
             return
 
         #Note in range and hit
         if cur_score == 300:
             pass
             #excellent_text.draw(True)
-        elif cur_score == 200:
-            good_text.draw(True)
-        elif cur_score == 100:
-            ok_text.draw(True)
-        elif cur_score == 50:
-            bad_text.draw(True)
+        else:
+            JTF.add_to_q(cur_score)
 
         Counters.score += cur_score
         Flags.score_updated = True
@@ -81,51 +77,60 @@ class JudgementTextHandler(Wait):
     #If it is, then set the time to MINIMUM_FRAME -1
     def __init__(self) -> None:
         self.q = deque()
-        self.buf = -2
+        self.to_stop_drawing = -1
         self.needed_time = -1
+        self.to_draw = -1
         delta_time_list.append(self)
     def time_passed(self):
-        #Check if queue has a value in it, if it does, shorten the text
+        if self.q and self.to_draw == -1:
+            self.to_draw = self.q.popleft()
+            self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+            if self.to_stop_drawing == -1:
+                return True
+            return False
+        if self.needed_time == -1:
+            return False
         if self.q:
-            if self.buf != -2:
-                time_to_set = (MINIMUM_JUDGEMENT_TEXT_FRAMES-1)*FRAME_FREQUENCY+Counters.ticks
-                if self.needed_time <= time_to_set:
-                    return super().time_passed()
-                self.needed_time = time_to_set
-            else:
-                self.buf = self.q.popleft()
-                self.needed_time = self.delta*TPS_CAP + Counters.ticks
-            return False
-        if self.buf == -2:
-            return False
+            time_to_check = (MINIMUM_JUDGEMENT_TEXT_FRAMES-1)*FRAME_FREQUENCY
+            if self.needed_time > time_to_check:
+                self.needed_time = time_to_check
+                return False
         return super().time_passed()
     def run(self):
-        #Removed the buffered text, set buf to -2
-        if self.buf == 0:
+        print("ran")
+        if self.to_stop_drawing == 0:
             miss_text.stop_draw()
-        if self.buf == 50:
-            miss_text.stop_draw()
-        if self.buf == 100:
-            miss_text.stop_draw()
-        if self.buf == 200:
-            miss_text.stop_draw()
-        if self.buf == 300:
-            miss_text.stop_draw()
+        if self.to_stop_drawing == 50:
+            bad_text.stop_draw()
+        if self.to_stop_drawing == 100:
+            ok_text.stop_draw()
+        if self.to_stop_drawing == 200:
+            good_text.stop_draw()
+        if self.to_stop_drawing == 300:
+            excellent_text.stop_draw()
+        self.to_stop_drawing = -1
 
-        if self.buf == 0:
-            miss_text.draw()
-        if self.buf == 50:
-            miss_text.draw()
-        if self.buf == 100:
-            miss_text.draw()
-        if self.buf == 200:
-            miss_text.draw()
-        if self.buf == 300:
-            miss_text.draw()
-
-        self.buf = -2
+        if self.to_draw == 0:
+            miss_text.draw(True)
+            self.to_stop_drawing = 0
+        elif self.to_draw == 50:
+            bad_text.draw(True)
+            self.to_stop_drawing = 50
+        elif self.to_draw == 100:
+            ok_text.draw(True)
+            self.to_stop_drawing = 100
+        elif self.to_draw == 200:
+            good_text.draw(True)
+            self.to_stop_drawing = 200
+        elif self.to_draw == 300:
+            excellent_text.draw(True)
+            self.to_stop_drawing = 300
+        self.to_draw = -1
+        self.needed_time = Counters.ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
     def add_to_q(self, judgement_value):
         self.q.append(judgement_value)
+
+JTF = JudgementTextHandler()
 
 def fps_wrapper(): fps_text.update_and_draw_text(str(clock.get_fps()))
 fps_text.draw()
@@ -140,7 +145,7 @@ while Flags.running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if DEBUG:
                 mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
-                print(pygame.mouse.get_pos())
+                print(f"mouse pos {pygame.mouse.get_pos()}")
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
@@ -177,7 +182,7 @@ while Flags.running:
         screen.fill((0,0,0))
         #Update score
         if Flags.score_updated:
-            score_text.update_and_draw_text(f"{Counters.score}")
+            score_text.update_and_draw_text(f"{Counters.score} q {JTF.q}")
         #Draw screen
         handle_fblits()
         screen.fblits(fblits_list)
