@@ -38,12 +38,8 @@ def _judge_note(lane:int):
             JTF.add_to_q(0)
             return
 
-        #Note in range and hit
-        if cur_score == 300:
-            pass
-            #excellent_text.draw(True)
-        else:
-            JTF.add_to_q(cur_score)
+        #Draws score text
+        JTF.add_to_q(cur_score)
 
         Counters.score += cur_score
         Flags.score_updated = True
