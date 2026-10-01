@@ -1,8 +1,10 @@
 from collections import deque
+from abc import ABC, abstractmethod
+from typing import override
 
 import pygame
 
-from modules.classes import Wait, Text, Sprite, WaitExtendable
+from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawnEntity
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -86,7 +88,25 @@ class JudgementTextHandler(Wait):
 
 JTF = JudgementTextHandler()
 
-class Note(Sprite):
+class AbstractNote(ABC):
+    @abstractmethod
+    def judge(self):
+        pass
+
+    @abstractmethod
+    def move(self):
+        pass
+
+    @abstractmethod
+    def q_destroy(self):
+        pass
+
+    @abstractmethod
+    def destroy(self):
+        pass
+
+
+class Note(Sprite, AbstractNote):
     '''Class for not long notes'''
     def __init__(self, key:int) -> None:
         '''Pos is the key needed'''
@@ -151,8 +171,37 @@ class Note(Sprite):
         note_list[self.key-1].remove(self)
         drawn_list.remove(self.to_send)
 
-class LongNote(Note):
-    pass
+class LongNote(DrawnEntity, AbstractNote):
+    '''Will maybe implement a minimum length for LNs'''
+    def __init__(self, key, duration) -> None:
+        '''
+        key (1-4) is the key the note is for\n
+        duration (ms) is how long the note is
+        '''
+        self.pos = [360+200*key,0] #pos is the pos at the top of the first portion of the note
+        self.note_duration = duration
+        #Calculate how long the note is visually based off the length
+        self.note_length = duration * SCROLL_SPEED
+        super().__init__(-8, self.pos)
+        self.draw()
+
+    @override
+    def setup(self, entity_index=0) -> None:
+        top_note_pos = self.note_length - NOTE_TEXTURE_HEIGHT
+        images_dict.get("note")
+
+        return super().setup(entity_index)
+    @override
+    def move(self) -> None:
+        '''Function that moves the note'''
+        self.pos[1] += SCROLL_SPEED
+        #Missed note
+        if self.pos[1] > VERTICAL_SIZE:
+            JTF.add_to_q(0)
+            miss.play()
+            self.q_destroy()
+    
+
 
 def calculate_acc():
     Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
@@ -179,7 +228,7 @@ def judge_note(lane:int):
         Counters.score += cur_score
         Flags.score_updated = True
 
-hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-300), "hit_light")] for x in range(4)]
+hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
 for i in hit_lights:
     i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 def enable_hitlight(n):
@@ -191,3 +240,8 @@ def enable_hitlight(n):
 def draw_assets():
     chart.draw()
     judgement_line.draw()
+
+def stop_assets():
+    chart.stop_draw()
+    judgement_line.stop_draw()
+    note_list.clear()

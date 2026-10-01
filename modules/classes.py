@@ -13,9 +13,9 @@ _logger.setLevel(logging.DEBUG)
 
 class DrawnEntity():
     '''This is the base class for all entities that get drawn on screen.'''
-    def __init__(self, priority:int, pos:tuple[int,int], origin = (0,0), center=False) -> None:
+    def __init__(self, priority:int, pos:tuple[int,int]|list[int], origin = (0,0), center=False) -> None:
         self.orig_pos = pos
-        self.pos=pos
+        self.pos = pos
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
         self.to_send = ([], 0)

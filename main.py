@@ -30,7 +30,7 @@ def note_test_wrapper():
                 break
 
 note_test_wrapper()
-Wait(.2, note_test_wrapper, repeats=True, use_game_tick=True)
+Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
 
 #Text declaration
 mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
