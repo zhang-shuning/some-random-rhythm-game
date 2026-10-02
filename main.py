@@ -26,7 +26,7 @@ def note_test_wrapper():
         while 1:
             random_2 = randint(1,4)
             if random_1 != random_2:
-                scenes.gameplay.Note(random_2).draw()
+                scenes.gameplay.LongNote(random_2, 10)
                 break
 
 note_test_wrapper()

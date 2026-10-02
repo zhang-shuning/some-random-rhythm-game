@@ -4,7 +4,7 @@ from typing import override
 
 import pygame
 
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawnEntity
+from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -105,7 +105,6 @@ class AbstractNote(ABC):
     def destroy(self):
         pass
 
-
 class Note(Sprite, AbstractNote):
     '''Class for not long notes'''
     def __init__(self, key:int) -> None:
@@ -171,62 +170,75 @@ class Note(Sprite, AbstractNote):
         note_list[self.key-1].remove(self)
         drawn_list.remove(self.to_send)
 
-class LongNote(DrawnEntity, AbstractNote):
+class LongNote(AbstractNote):
     '''Will maybe implement a minimum length for LNs'''
     def __init__(self, key, duration) -> None:
         '''
         key (1-4) is the key the note is for\n
         duration (ms) is how long the note is
         '''
-        self.pos = [360+200*key,0] #pos is the pos at the top of the first portion of the note
+        key_x = 360+200*key
+        length = duration * SCROLL_SPEED
+        self.key = key
         self.note_duration = duration
         #Calculate how long the note is visually based off the length
         self.note_length = duration * SCROLL_SPEED
-        super().__init__(-8, self.pos)
-        self.draw()
+        self.bottom_note = Sprite(-7, [key_x,0], 'note')
+        self.top_note = Sprite(-7, [key_x, -length], 'note')
+        self.middle_rect = DrawbleRect(-8, [key_x, NOTE_TEXTURE_HEIGHT-length], (200, self.note_length), (255,255,255))
 
-    @override
-    def setup(self, entity_index=0) -> None:
-        top_note_pos = self.note_length - NOTE_TEXTURE_HEIGHT
-        images_dict.get("note")
-
-        return super().setup(entity_index)
+        self.bottom_note.draw()
+        self.top_note.draw()
+        self.middle_rect.draw()
+        note_list[key-1].append(self)
     @override
     def move(self) -> None:
         '''Function that moves the note'''
-        self.pos[1] += SCROLL_SPEED
+        self.top_note.pos[1] += SCROLL_SPEED
+        self.bottom_note.pos[1] += SCROLL_SPEED
+        self.middle_rect.pos[1] += SCROLL_SPEED
         #Missed note
-        if self.pos[1] > VERTICAL_SIZE:
+        if self.top_note.pos[1] > VERTICAL_SIZE:
             JTF.add_to_q(0)
             miss.play()
             self.q_destroy()
-    
-
+    def judge(self):
+        pass
+    def q_destroy(self):
+        destroy_list.append(self)
+    def destroy(self):
+        self.bottom_note.stop_draw()
+        self.top_note.stop_draw()
+        self.middle_rect.stop_draw()
+        note_list[self.key-1].remove(self)
 
 def calculate_acc():
     Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
 
 def judge_note(lane:int):
     if len(note_list[lane]) !=0:
-        cur_score = note_list[lane][0].judge()
-        #Handle point scoring
-        if cur_score == -1:
-            return
+        if isinstance(note_list[lane][0], Note):
+            cur_score = note_list[lane][0].judge()
+            #Handle point scoring
+            if cur_score == -1:
+                return
 
-        Flags.note_hit_or_missed = True
+            Flags.note_hit_or_missed = True
 
-        if cur_score == 0:
-            JTF.add_to_q(0)
-            miss.play()
-            Counters.combo = 0
-            return
-        #Draws score text
-        JTF.add_to_q(cur_score)
-        hit.play()
+            if cur_score == 0:
+                JTF.add_to_q(0)
+                miss.play()
+                Counters.combo = 0
+                return
+            #Draws score text
+            JTF.add_to_q(cur_score)
+            hit.play()
 
-        Counters.combo += 1
-        Counters.score += cur_score
-        Flags.score_updated = True
+            Counters.combo += 1
+            Counters.score += cur_score
+            Flags.score_updated = True
+        else:
+            pass
 
 hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
 for i in hit_lights:

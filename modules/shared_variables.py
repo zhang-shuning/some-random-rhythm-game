@@ -6,6 +6,8 @@ if TYPE_CHECKING:
     from classes import Wait
     from pygame import Rect
     from collections.abc import Callable
+    from modules.classes import *
+    from scenes.gameplay import Note, LongNote
 
 #Setup/internal buffers
 surface_dict = {} #The surface dict will store drawn lists
@@ -39,4 +41,4 @@ class Counters():
     miss = 0
 
 #Gameplay variables
-note_list:list[list] = [[],[],[],[]] #List of all notes on screen
+note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen

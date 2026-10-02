@@ -2,6 +2,7 @@
 
 from typing import Any, override
 from collections.abc import Callable
+from abc import ABC, abstractmethod
 import logging
 import pygame
 
@@ -11,14 +12,24 @@ from modules.constants import *
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
-class DrawnEntity():
+class AbstractDrawable(ABC):
+    '''Abstract class defining drawable classes'''
+    @abstractmethod
+    def draw(self):
+        pass
+
+    @abstractmethod
+    def stop_draw(self):
+        pass
+
+class DrawnEntity(AbstractDrawable):
     '''This is the base class for all entities that get drawn on screen.'''
     def __init__(self, priority:int, pos:tuple[int,int]|list[int], origin = (0,0), center=False) -> None:
         self.orig_pos = pos
         self.pos = pos
         self.priority = priority
         self.entities = [] # Ordered so first thing appended is first
-        self.to_send = ([], 0)
+        self.to_send = ([], 0, 0)
         self.is_drawn = False
         self.origin = origin
         if center:
@@ -32,6 +43,7 @@ class DrawnEntity():
         '''
         self.change_pos(self.entities[entity_index])
 
+    @override
     def stop_draw(self) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
         if self.to_send in drawn_list:
@@ -39,6 +51,7 @@ class DrawnEntity():
         self.to_send = [self.entities, self.pos, self.priority]
         self.is_drawn = False
 
+    @override
     def draw(self) -> None:
         '''Adds the entity to the draw list'''
         self.stop_draw()
@@ -56,6 +69,27 @@ class DrawnEntity():
             #print(f"origin {self.origin} old pos {self.orig_pos} new pos {(x,y)}")
             self.pos = (x,y)
 
+class DrawbleRect(AbstractDrawable):
+    '''No origin because I don't feel like it'''
+    def __init__(self, priority, pos, size:tuple[int,int]|list[int], color) -> None:
+        self.pos=pos
+        self.priority=priority
+        self.rect = pygame.surface.Surface(size=size)
+        self.rect.fill(color=color)
+        self.to_send = [[self.rect], pos, priority]
+
+    @override
+    def stop_draw(self) -> None:
+        '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
+        if self.to_send in drawn_list:
+            drawn_list.remove(self.to_send)
+        self.to_send = [[self.rect], self.pos, self.priority]
+
+    @override
+    def draw(self) -> None:
+        '''Adds the entity to the draw list'''
+        self.stop_draw()
+        drawn_list.append(self.to_send)
 
 class Text(DrawnEntity):
     '''This class is for text on screen'''
