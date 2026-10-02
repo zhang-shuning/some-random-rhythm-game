@@ -241,6 +241,13 @@ def judge_note(lane:int):
         else:
             pass
 
+def judge_ln_release(lane:int):
+    if len(note_list[lane]) !=0:
+        if isinstance(note_list[lane][0], LongNote):
+            pass
+        else:
+            pass
+
 hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
 for i in hit_lights:
     i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))

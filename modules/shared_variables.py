@@ -18,7 +18,6 @@ destroy_list = [] # List of object to be destroyed at end of frame
 rect_list:list[tuple[Rect, Callable]] = [] #List of buttons
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 
-
 class Flags():
     '''Stores all the flags'''
     running = True
@@ -42,3 +41,4 @@ class Counters():
 
 #Gameplay variables
 note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen
+held_notes = [False, False, False, False]

@@ -88,15 +88,33 @@ while Flags.running:
                 if event.key == pygame.K_d:
                     scenes.gameplay.judge_note(0)
                     scenes.gameplay.keypress.play()
+                    held_notes[0] = True
                 elif event.key == pygame.K_f:
                     scenes.gameplay.judge_note(1)
                     scenes.gameplay.keypress.play()
+                    held_notes[1] = True
                 elif event.key == pygame.K_j:
                     scenes.gameplay.judge_note(2)
                     scenes.gameplay.keypress.play()
+                    held_notes[2] = True
                 elif event.key == pygame.K_k:
                     scenes.gameplay.judge_note(3)
                     scenes.gameplay.keypress.play()
+                    held_notes[3] = True
+        if event.type == pygame.KEYUP:
+            if Flags.in_game:
+                if event.key == pygame.K_d:
+                    scenes.gameplay.judge_ln_release(0)
+                    held_notes[0] = False
+                elif event.key == pygame.K_f:
+                    scenes.gameplay.judge_ln_release(1)
+                    held_notes[1] = False
+                elif event.key == pygame.K_j:
+                    scenes.gameplay.judge_ln_release(2)
+                    held_notes[2] = False
+                elif event.key == pygame.K_k:
+                    scenes.gameplay.judge_ln_release(3)
+                    held_notes[3] = False
             if event.key == pygame.K_1:
                 if not Flags.is_paused:
                     pause()
