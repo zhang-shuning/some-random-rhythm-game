@@ -177,7 +177,7 @@ class LongNote(AbstractNote):
         key (1-4) is the key the note is for\n
         duration (ms) is how long the note is
         '''
-        key_x = 360+200*key
+        key_x = 360+NOTE_TEXTURE_LENGTH*key
         length = duration * SCROLL_SPEED
         self.key = key
         self.note_duration = duration
@@ -185,7 +185,8 @@ class LongNote(AbstractNote):
         self.note_length = duration * SCROLL_SPEED
         self.bottom_note = Sprite(-7, [key_x,0], 'note')
         self.top_note = Sprite(-7, [key_x, -length], 'note')
-        self.middle_rect = DrawbleRect(-8, [key_x, NOTE_TEXTURE_HEIGHT-length], (200, self.note_length), (255,255,255))
+        self.middle_rect = DrawbleRect(-8, [key_x+20, NOTE_TEXTURE_HEIGHT-length],
+                                        (NOTE_TEXTURE_LENGTH-40, self.note_length), (255,255,255))
 
         self.bottom_note.draw()
         self.top_note.draw()
