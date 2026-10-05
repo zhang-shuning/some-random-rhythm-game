@@ -187,7 +187,9 @@ class LongNote(AbstractNote):
         self.top_note = Sprite(-7, [key_x, -length], 'note')
         self.middle_rect = DrawbleRect(-8, [key_x+20, NOTE_TEXTURE_HEIGHT-length],
                                         (NOTE_TEXTURE_LENGTH-40, self.note_length), (255,255,255))
-
+        #Note state
+        self.note_failed = False
+        
         self.bottom_note.draw()
         self.top_note.draw()
         self.middle_rect.draw()
@@ -205,48 +207,55 @@ class LongNote(AbstractNote):
             self.q_destroy()
     def judge(self):
         pass
+    def judge_release(self):
+        pass
     def q_destroy(self):
         destroy_list.append(self)
     def destroy(self):
-        self.bottom_note.stop_draw()
-        self.top_note.stop_draw()
-        self.middle_rect.stop_draw()
+        drawn_list.remove(self.bottom_note)
+        drawn_list.remove(self.top_note)
+        drawn_list.remove(self.middle_rect)
         note_list[self.key-1].remove(self)
 
 def calculate_acc():
     Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
 
 def judge_note(lane:int):
-    if len(note_list[lane]) !=0:
-        if isinstance(note_list[lane][0], Note):
-            cur_score = note_list[lane][0].judge()
-            #Handle point scoring
-            if cur_score == -1:
-                return
+    if len(note_list[lane]) ==0:
+        return
 
-            Flags.note_hit_or_missed = True
+    note = note_list[lane][0]
+    if isinstance(note, AbstractNote):
+        cur_score = note.judge()
+        #Handle point scoring
+        if cur_score == -1:
+            return
 
-            if cur_score == 0:
-                JTF.add_to_q(0)
-                miss.play()
-                Counters.combo = 0
-                return
-            #Draws score text
-            JTF.add_to_q(cur_score)
-            hit.play()
+        Flags.note_hit_or_missed = True
 
-            Counters.combo += 1
-            Counters.score += cur_score
-            Flags.score_updated = True
-        else:
-            pass
+        if cur_score == 0:
+            JTF.add_to_q(0)
+            miss.play()
+            Counters.combo = 0
+            return
+        #Draws score text
+        JTF.add_to_q(cur_score)
+        hit.play()
+
+        Counters.combo += 1
+        Counters.score += cur_score
+        Flags.score_updated = True
+        return
 
 def judge_ln_release(lane:int):
-    if len(note_list[lane]) !=0:
-        if isinstance(note_list[lane][0], LongNote):
-            pass
-        else:
-            pass
+    if len(note_list[lane]) == 0:
+        return
+
+    note = note_list[lane][0]
+    if not isinstance(note, LongNote):
+        return
+    #Checks if long note was being held the from before
+    result = note.judge_release()
 
 hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
 for i in hit_lights:
