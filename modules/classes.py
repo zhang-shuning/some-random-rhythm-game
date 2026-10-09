@@ -212,12 +212,12 @@ class Button(Text):
     def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30, origin = (0,0),
                 text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
                 rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None) -> None:
+        #Rect is a seperate rect around the text
         self.rect_color = rect_color
         self.rect_size = rect_size
         self.on_press = on_press
         self.cur_rect_and_func = None
         super().__init__(text, pos, priority, font_size, origin, text_color, bg_color)
-        self.update_rect()
     def update_rect(self):
         if self.cur_rect_and_func in rect_list:
             rect_list.remove(self.cur_rect_and_func)
@@ -225,9 +225,9 @@ class Button(Text):
         rect_list.append(self.cur_rect_and_func)
     @override
     def setup(self, entity_index=0):
-        #surface = pygame.Surface(size=self.rect_size)
-        #surface.fill(self.rect_color)
-        #self.entities.append(surface)
+        surface = pygame.Surface(size=self.rect_size)
+        surface.fill(self.rect_color)
+        self.entities.append(surface)
         super().setup(entity_index)
     @override
     def draw(self) -> None:
