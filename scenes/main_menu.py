@@ -1,9 +1,9 @@
 from modules.classes import *
 
 pygame.font.init()
-play_button = Button("Play Game", (100,100), 10, rect_color=(255,255,255))
-settings_button = Button("Settings", (200,100), 10, rect_color=(255,255,255))
-exit_button = Button("Exit Game", (100,200), 10, rect_color=(255,255,255))
+play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100))
+settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
+exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100))
 
 main_menu_elements = (play_button, settings_button, exit_button)
 
