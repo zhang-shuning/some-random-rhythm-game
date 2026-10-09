@@ -75,6 +75,7 @@ while Flags.running:
         if event.type == pygame.QUIT:
             Flags.running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
+            #Button check
             for i in rect_list:
                 if i[0].collidepoint(event.pos):
                     i[1]()

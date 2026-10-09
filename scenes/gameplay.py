@@ -28,7 +28,10 @@ bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 21
 miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
 
 class JudgementTextHandler(Wait):
-    '''Handles the text that appears when a note is judged.'''
+    '''
+    Handles the text that appears when a note is judged.\n
+    Has a feature where the note time gets shorter if there's a note hit while the text is on screen
+    '''
     #In run(), check if q isn't empty
     #If it is, then set the time to MINIMUM_FRAME -1
     def __init__(self) -> None:
@@ -181,6 +184,7 @@ class LongNote(AbstractNote):
         length = duration * SCROLL_SPEED
         self.key = key
         self.note_duration = duration
+        self.tick_needed_bottom = TIME_NEEDED + Counters.game_ticks
         #Calculate how long the note is visually based off the length
         self.note_length = duration * SCROLL_SPEED
         self.bottom_note = Sprite(-7, [key_x,0], 'note')
@@ -189,11 +193,13 @@ class LongNote(AbstractNote):
                                         (NOTE_TEXTURE_LENGTH-40, self.note_length), (255,255,255))
         #Note state
         self.note_failed = False
+        self.bottom_note_scored = False
         
         self.bottom_note.draw()
         self.top_note.draw()
         self.middle_rect.draw()
         note_list[key-1].append(self)
+
     @override
     def move(self) -> None:
         '''Function that moves the note'''
@@ -205,23 +211,69 @@ class LongNote(AbstractNote):
             JTF.add_to_q(0)
             miss.play()
             self.q_destroy()
-    def judge(self):
-        pass
+            return
+        if self.bottom_note.pos[1] > VERTICAL_SIZE and not self.bottom_note_scored:
+            self.bottom_note_scored = True
+            JTF.add_to_q(0)
+            miss.play()
+
+    def judge(self) -> int:
+        '''
+        Note judgment\n
+        Returns judgement score, if the judgement is not in range, return -1\n
+        If it is in range, destroy the note
+        '''
+        #Head already scored
+        if self.bottom_note_scored:
+            return -1
+        #Excellent
+        if self._within_range(EXCELLENT_RANGE):
+            Counters._300 += 1
+            self.bottom_note_scored = True
+            return 300
+        if self._within_range(GOOD_RANGE):
+            Counters._200 += 1
+            self.bottom_note_scored = True
+            return 200
+        if self._within_range(OK_RANGE):
+            Counters._100 += 1
+            self.bottom_note_scored = True
+            return 100
+        if self._within_range(BAD_RANGE):
+            Counters._50 += 1
+            self.bottom_note_scored = True
+            return 50
+        if self._within_range(MISS_RANGE):
+            Counters.miss += 1
+            self.bottom_note_scored = True
+            return 0
+        return -1
+
+    def _within_range(self, range:int) -> bool:
+        if self.tick_needed_bottom-range <= Counters.game_ticks <= self.tick_needed_bottom+range:
+            return True
+        return False
+
     def judge_release(self):
         pass
+
     def q_destroy(self):
         destroy_list.append(self)
+
     def destroy(self):
-        drawn_list.remove(self.bottom_note)
-        drawn_list.remove(self.top_note)
-        drawn_list.remove(self.middle_rect)
+        print(f"bottom {self.bottom_note in drawn_list}")
+        print(f"top {self.top_note in drawn_list}")
+        print(f"middle {self.middle_rect in drawn_list}")
+        drawn_list.remove(self.bottom_note.to_send)
+        drawn_list.remove(self.top_note.to_send)
+        drawn_list.remove(self.middle_rect.to_send)
         note_list[self.key-1].remove(self)
 
 def calculate_acc():
     Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
 
 def judge_note(lane:int):
-    if len(note_list[lane]) ==0:
+    if len(note_list[lane]) == 0:
         return
 
     note = note_list[lane][0]
