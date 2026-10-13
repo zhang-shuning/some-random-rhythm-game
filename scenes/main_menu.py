@@ -3,7 +3,7 @@ from modules.classes import *
 pygame.font.init()
 play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100))
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
-exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100))
+exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=lambda: Flags.running = False)
 
 main_menu_elements = (play_button, settings_button, exit_button)
 
@@ -13,7 +13,7 @@ def open_main_menu():
 
 def close_main_menu():
     for element in main_menu_elements:
-        element.draw()
+        element.stop_draw()
 
 if __name__ == "__main__":
     from modules.scripts import *
@@ -41,7 +41,7 @@ if __name__ == "__main__":
             handle_fblits()
             screen.fblits(fblits_list)
             #Draw notes
-            if Flags.in_game:
+            if Flags.current_frame_drawn:
                 for note_row in note_list:
                     for note in note_row:
                         note.move()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
             pygame.display.flip()
 
         #Next tick
-        if Flags.in_game:
+        if Flags.current_frame_drawn:
             Counters.game_ticks+=1
         Counters.ticks+=1
         clock.tick(TPS_CAP)

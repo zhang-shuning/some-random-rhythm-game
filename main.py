@@ -1,6 +1,7 @@
 '''Main file for the game'''
 # pylint: disable=no-member
 from random import randint
+import time
 import pygame
 
 from modules.classes import Text, Wait, Button
@@ -26,29 +27,30 @@ def note_test_wrapper():
         while 1:
             random_2 = randint(1,4)
             if random_1 != random_2:
-                scenes.gameplay.LongNote(random_2, 10)
+                #scenes.gameplay.LongNote(random_2, 10)
                 break
 
 note_test_wrapper()
 Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
 
 #Text declaration
-mouse_text = Text("", (HORIZONTAL_SIZE-200,0), 100)
+mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
 acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
 combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
+#Button function declaration
 def pause():
     Flags.is_paused = True
-    Flags.in_game = False
+    Flags.current_frame_drawn = False
     unpause_button.draw()
     restart_button.draw()
     exit_button.draw()
 
 def unpause():
     Flags.is_paused = False
-    Flags.in_game = True
+    Flags.current_frame_drawn = True
     unpause_button.stop_draw()
     restart_button.stop_draw()
     exit_button.stop_draw()
@@ -68,6 +70,11 @@ def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True)
 
+#This system checks if a note is out sync with the actual time
+expected_time = time.time()
+cur_time = time.time()
+ticks_to_increment = 1
+
 #Main loop
 while Flags.running:
     #Get events
@@ -84,7 +91,7 @@ while Flags.running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
-            if Flags.in_game:
+            if Flags.current_frame_drawn:
                 if event.key == pygame.K_d:
                     scenes.gameplay.judge_note(0)
                     scenes.gameplay.keypress.play()
@@ -102,7 +109,7 @@ while Flags.running:
                     scenes.gameplay.keypress.play()
                     held_notes[3] = True
         if event.type == pygame.KEYUP:
-            if Flags.in_game:
+            if Flags.current_frame_drawn:
                 if event.key == pygame.K_d:
                     scenes.gameplay.judge_ln_release(0)
                     held_notes[0] = False
@@ -126,7 +133,7 @@ while Flags.running:
     keys = pygame.key.get_pressed()
     #Only check if the frame is being drawn for hitlights because hitlights are rendered
     if Counters.game_ticks % FRAME_FREQUENCY == 0:
-        if Flags.in_game:
+        if Flags.current_frame_drawn:
             if keys[pygame.K_d]:
                 scenes.gameplay.enable_hitlight(0)
             if keys[pygame.K_f]:
@@ -158,7 +165,7 @@ while Flags.running:
         handle_fblits()
         screen.fblits(fblits_list)
         #Draw notes
-        if Flags.in_game:
+        if Flags.current_frame_drawn:
             for note_row in note_list:
                 for note in note_row:
                     note.move()
@@ -169,8 +176,19 @@ while Flags.running:
 
         pygame.display.flip()
 
+    #If time is too off the expected time, go multiple ticks instead
+    expected_time += S_PER_TICK
+    cur_time = time.time()
+
+    #Check frame drops
+    if cur_time > expected_time:
+        #Calculate how many ticks the time has gone up by
+        ticks_to_increment = int((cur_time-expected_time) / S_PER_TICK)
+        expected_time += ticks_to_increment*S_PER_TICK
+
+    mouse_text.update_and_draw_text(f"expected {expected_time}\ncur {cur_time}\ndifference {cur_time-expected_time}")
     #Next tick
-    if Flags.in_game:
+    if Flags.current_frame_drawn:
         Counters.game_ticks+=1
     Counters.ticks+=1
     clock.tick(TPS_CAP)

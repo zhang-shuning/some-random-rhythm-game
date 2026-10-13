@@ -13,10 +13,11 @@ def _get_range(n):
     return n//2
 
 #Overall game
-TPS_CAP = 60 #Input ticks
+TPS_CAP = 360 #Input ticks
 FPS_CAP = 60 #Display refreshes
 FRAME_FREQUENCY = TPS_CAP//FPS_CAP #Assumes TPS and FPS are divisible
-MS_PER_TICK = 1/TPS_CAP*1000
+S_PER_TICK = 1/TPS_CAP
+S_PER_FRAME = 1/TPS_CAP
 HORIZONTAL_SIZE = 1920
 VERTICAL_SIZE = 1080
 DEBUG = True
