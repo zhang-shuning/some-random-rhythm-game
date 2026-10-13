@@ -3,6 +3,7 @@
 from random import randint
 import time
 import pygame
+import sys
 
 from modules.classes import Text, Wait, Button
 from modules.constants import *
@@ -66,6 +67,9 @@ score_text.draw()
 acc_text.draw()
 combo_text.draw()
 
+#Input array
+input_array = []
+
 def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True)
@@ -92,37 +96,43 @@ while Flags.running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 Flags.running = False
-            if Flags.current_frame_drawn:
-                if event.key == pygame.K_d:
-                    scenes.gameplay.judge_note(0)
-                    scenes.gameplay.keypress.play()
-                    held_notes[0] = True
-                elif event.key == pygame.K_f:
-                    scenes.gameplay.judge_note(1)
-                    scenes.gameplay.keypress.play()
-                    held_notes[1] = True
-                elif event.key == pygame.K_j:
-                    scenes.gameplay.judge_note(2)
-                    scenes.gameplay.keypress.play()
-                    held_notes[2] = True
-                elif event.key == pygame.K_k:
-                    scenes.gameplay.judge_note(3)
-                    scenes.gameplay.keypress.play()
-                    held_notes[3] = True
+            if event.key == pygame.K_d:
+                scenes.gameplay.judge_note(0)
+                scenes.gameplay.keypress.play()
+                held_notes[0] = True
+                input_array.append((Counters.ticks, 0))
+            elif event.key == pygame.K_f:
+                scenes.gameplay.judge_note(1)
+                scenes.gameplay.keypress.play()
+                held_notes[1] = True
+                input_array.append((Counters.ticks, 1))
+            elif event.key == pygame.K_j:
+                scenes.gameplay.judge_note(2)
+                scenes.gameplay.keypress.play()
+                held_notes[2] = True
+                input_array.append((Counters.ticks, 2))
+            elif event.key == pygame.K_k:
+                scenes.gameplay.judge_note(3)
+                scenes.gameplay.keypress.play()
+                input_array.append((Counters.ticks, 3))
+                held_notes[3] = True
         if event.type == pygame.KEYUP:
-            if Flags.current_frame_drawn:
-                if event.key == pygame.K_d:
-                    scenes.gameplay.judge_ln_release(0)
-                    held_notes[0] = False
-                elif event.key == pygame.K_f:
-                    scenes.gameplay.judge_ln_release(1)
-                    held_notes[1] = False
-                elif event.key == pygame.K_j:
-                    scenes.gameplay.judge_ln_release(2)
-                    held_notes[2] = False
-                elif event.key == pygame.K_k:
-                    scenes.gameplay.judge_ln_release(3)
-                    held_notes[3] = False
+            if event.key == pygame.K_d:
+                scenes.gameplay.judge_ln_release(0)
+                held_notes[0] = False
+                input_array.append((Counters.ticks, 4))
+            elif event.key == pygame.K_f:
+                scenes.gameplay.judge_ln_release(1)
+                held_notes[1] = False
+                input_array.append((Counters.ticks, 5))
+            elif event.key == pygame.K_j:
+                scenes.gameplay.judge_ln_release(2)
+                held_notes[2] = False
+                input_array.append((Counters.ticks, 6))
+            elif event.key == pygame.K_k:
+                scenes.gameplay.judge_ln_release(3)
+                held_notes[3] = False
+                input_array.append((Counters.ticks, 7))
             if event.key == pygame.K_1:
                 if not Flags.is_paused:
                     pause()
