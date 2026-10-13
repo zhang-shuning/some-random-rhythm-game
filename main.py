@@ -27,7 +27,7 @@ def note_test_wrapper():
         while 1:
             random_2 = randint(1,4)
             if random_1 != random_2:
-                #scenes.gameplay.LongNote(random_2, 10)
+                scenes.gameplay.LongNote(random_2, 10)
                 break
 
 note_test_wrapper()
@@ -186,7 +186,6 @@ while Flags.running:
         ticks_to_increment = int((cur_time-expected_time) / S_PER_TICK)
         expected_time += ticks_to_increment*S_PER_TICK
 
-    mouse_text.update_and_draw_text(f"expected {expected_time}\ncur {cur_time}\ndifference {cur_time-expected_time}")
     #Next tick
     if Flags.current_frame_drawn:
         Counters.game_ticks+=1
