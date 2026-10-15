@@ -5,6 +5,12 @@ play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100))
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
 exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=lambda: Flags.running = False)
 
+def event_handler(event:pygame.Event):
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_ESCAPE:
+            Flags.running = False
+
+scene = Scene(event_handler) 
 main_menu_elements = (play_button, settings_button, exit_button)
 
 def open_main_menu():

@@ -1,0 +1,2 @@
+'''Temporary text console'''
+

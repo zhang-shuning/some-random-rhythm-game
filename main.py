@@ -17,7 +17,10 @@ pygame.init()
 load_images()
 
 import scenes.gameplay
+import scenes.level_selector
+import scenes.main_menu
 
+current_scene = scenes.main_menu.scene
 scenes.gameplay.draw_assets()
 
 #Just spawns some notes every 3 seconds
@@ -84,6 +87,8 @@ while Flags.running:
     #Get events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            #I shouldn't need any cleanup after quit, so I should be able to keep this
+            #For all scenes
             Flags.running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             #Button check
@@ -175,7 +180,7 @@ while Flags.running:
         #Draw screen
         handle_fblits()
         screen.fblits(fblits_list)
-        #Draw notes
+        #Move notes
         if Flags.current_frame_drawn:
             for note_row in note_list:
                 for note in note_row:

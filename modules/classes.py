@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, rect_list
+from modules.shared_variables import delta_time_list, Flags, Counters, GameplayFunctions, drawn_list, images_dict, rect_list
 from modules.constants import *
 
 _logger = logging.getLogger(__name__)
@@ -238,3 +238,20 @@ class Button(Text):
         if self.cur_rect_and_func in rect_list:
             rect_list.remove(self.cur_rect_and_func)
         return super().stop_draw()
+
+class Scene():
+    '''All scenes must have this class'''
+    def __init__(self, event_handler:Callable[[pygame.Event], None],
+                 held_key_handler:Callable[[], None] = lambda:None,
+                 render:Callable[[], None] = lambda:None,
+                 after_render:Callable[[],None] = lambda:None) -> None:
+        self.event_handler = event_handler
+        self.held_key_handler = held_key_handler
+        self.render = render
+        self.after_render = after_render
+    def update_handlers(self) -> None:
+        GameplayFunctions.event_handler = self.event_handler
+        GameplayFunctions.held_key_handler = self.held_key_handler
+        GameplayFunctions.render = self.render
+
+    def clear_previous_scene(self) -> None:

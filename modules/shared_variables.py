@@ -40,6 +40,12 @@ class Counters():
     _50 = 0
     miss = 0
 
+class GameplayFunctions():
+    event_handler:Callable[[pygame.Event], None] = staticmethod(lambda x:None)
+    held_key_handler:Callable[[], None] = staticmethod(lambda:None)
+    render:Callable[[], None] = staticmethod(lambda:None)
+    after_render:Callable[[], None] = staticmethod(lambda:None)
+
 #Gameplay variables
 note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen
 held_notes = [False, False, False, False]

@@ -17,7 +17,6 @@ hit.set_volume(.1)
 keypress.set_volume(.2)
 miss.set_volume(.6)
 
-
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
 judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
