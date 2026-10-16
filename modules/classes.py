@@ -8,6 +8,7 @@ import pygame
 
 from modules.shared_variables import delta_time_list, Flags, Counters, GameplayFunctions, drawn_list, images_dict, rect_list
 from modules.constants import *
+from modules.scripts import clear_dynamic_lists
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -244,14 +245,22 @@ class Scene():
     def __init__(self, event_handler:Callable[[pygame.Event], None],
                  held_key_handler:Callable[[], None] = lambda:None,
                  render:Callable[[], None] = lambda:None,
-                 after_render:Callable[[],None] = lambda:None) -> None:
+                 after_render:Callable[[],None] = lambda:None,
+                 scene_init_function:Callable[[], None] = lambda:None) -> None:
         self.event_handler = event_handler
         self.held_key_handler = held_key_handler
         self.render = render
         self.after_render = after_render
+        self.scene_init_function = scene_init_function
+
+    def init_scene(self):
+        '''Removes objects from the previous scene, and initiaizes the current one'''
+        clear_dynamic_lists()
+        self.scene_init_function()
+        self.update_handlers()
+
     def update_handlers(self) -> None:
+        '''Update the event, held key handlers and the render cycle'''
         GameplayFunctions.event_handler = self.event_handler
         GameplayFunctions.held_key_handler = self.held_key_handler
         GameplayFunctions.render = self.render
-
-    def clear_previous_scene(self) -> None:

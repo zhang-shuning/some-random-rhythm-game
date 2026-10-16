@@ -3,7 +3,7 @@ import pygame
 import pathlib
 
 from modules.shared_variables import *
-from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE, VERTICAL_SIZE, ScreenEnum
+from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE
 from modules.classes import Sprite
 
 def switch_screen(screen:int):
@@ -47,5 +47,8 @@ def handle_fblits():
         for surface in i[0]:
             fblits_list.append((surface, i[1]))
 
+def clear_dynamic_lists() -> None:
+    for i in dynamic_containers:
+        i.clear()
 if __name__ == "__main__":
     load_images()

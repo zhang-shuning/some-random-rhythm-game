@@ -19,6 +19,14 @@ input_list = [] # List with files and tick
 rect_list:list[tuple[Rect, Callable]] = [] #List of buttons
 delta_time_list:list[Wait] = [] #List of delta time objects; this is global
 
+dynamic_containers = (surface_dict,
+                      drawn_list,
+                      fblits_list,
+                      destroy_list,
+                      input_list,
+                      rect_list,
+                      delta_time_list)
+
 class Flags():
     '''Stores all the flags'''
     running = True
