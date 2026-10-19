@@ -1,9 +1,7 @@
 '''Main file for the game'''
 # pylint: disable=no-member
-from random import randint
 import time
 import pygame
-import sys
 
 from modules.classes import Text, Wait, Button
 from modules.constants import *
@@ -21,21 +19,6 @@ import scenes.level_selector
 import scenes.main_menu
 
 current_scene = scenes.gameplay.scene
-scenes.gameplay.draw_assets()
-
-#Just spawns some notes every 3 seconds
-def note_test_wrapper():
-    random_1 = randint(1,4)
-    scenes.gameplay.Note(random_1).draw()
-    if randint(0,3) == 0:
-        while 1:
-            random_2 = randint(1,4)
-            if random_1 != random_2:
-                scenes.gameplay.LongNote(random_2, 10)
-                break
-
-note_test_wrapper()
-Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
 
 #Text declaration
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
@@ -71,6 +54,8 @@ ticks_to_increment = 1
 
 #Main loop
 while Flags.running:
+    if Flags.new_scene:
+        current_scene.init_scene()
     #Get events
     for event in pygame.event.get():
         current_scene.handle_event(event)

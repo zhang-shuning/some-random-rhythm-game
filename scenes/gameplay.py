@@ -1,6 +1,7 @@
 from collections import deque
 from abc import ABC, abstractmethod
 from typing import override
+from random import randint
 
 import pygame
 
@@ -35,6 +36,17 @@ combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
 #Input array
 input_array = []
+
+#Just spawns some notes every 3 seconds
+def note_test_wrapper():
+    random_1 = randint(1,4)
+    Note(random_1).draw()
+    if randint(0,3) == 0:
+        while 1:
+            random_2 = randint(1,4)
+            if random_1 != random_2:
+                LongNote(random_2, 10)
+                break
 
 def events(event: pygame.Event):
     if event.type == pygame.QUIT:
@@ -141,7 +153,15 @@ def after_render():
     pass
 
 def scene_init():
-    pass
+    score_text.draw()
+    acc_text.draw()
+    combo_text.draw()
+    chart.draw()
+    judgement_line.draw()
+    note_test_wrapper()
+    Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
+    for i in hit_lights:
+        i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
 scene = Scene(events, held_keys, render, after_render, scene_init)
 
@@ -379,9 +399,6 @@ class LongNote(AbstractNote):
         destroy_list.append(self)
 
     def destroy(self):
-        print(f"bottom {self.bottom_note in drawn_list}")
-        print(f"top {self.top_note in drawn_list}")
-        print(f"middle {self.middle_rect in drawn_list}")
         drawn_list.remove(self.bottom_note.to_send)
         drawn_list.remove(self.top_note.to_send)
         drawn_list.remove(self.middle_rect.to_send)
@@ -428,20 +445,12 @@ def judge_ln_release(lane:int):
     result = note.judge_release()
 
 hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
-for i in hit_lights:
-    i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+
 def enable_hitlight(n):
     '''Enables the hitlight'''
     hit_lights[n][1].set_time()
     if not hit_lights[n][0].is_drawn:
         hit_lights[n][0].draw()
-
-def draw_assets():
-    score_text.draw()
-    acc_text.draw()
-    combo_text.draw()
-    chart.draw()
-    judgement_line.draw()
 
 def stop_assets():
     score_text.stop_draw()
