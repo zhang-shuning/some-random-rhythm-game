@@ -1,6 +1,6 @@
 from modules.classes import *
 from modules.scripts import handle_fblits
-from modules.shared_variables import fblits_list, Counters, Flags
+from modules.shared_variables import fblits_list, Counters, Flags, StringFlags
 
 pygame.font.init()
 

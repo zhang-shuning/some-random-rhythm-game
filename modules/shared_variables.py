@@ -15,7 +15,6 @@ images_dict = {} #The images dict stores all textures in the game; not dynamical
 drawn_list = [] # [[surface, pos, priority]]
 fblits_list = [] # list for fblits
 destroy_list = [] # List of object to be destroyed at end of frame
-input_list = [] # List with files and tick
 rect_list:list[tuple[Rect, Callable]] = [] #List of buttons
 delta_time_list:list[Wait] = [] #List of delta time objects
 global_delta_time_list = []
@@ -25,7 +24,6 @@ dynamic_containers = (surface_dict,
                       drawn_list,
                       fblits_list,
                       destroy_list,
-                      input_list,
                       rect_list,
                       delta_time_list)
 
