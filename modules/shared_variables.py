@@ -17,7 +17,9 @@ fblits_list = [] # list for fblits
 destroy_list = [] # List of object to be destroyed at end of frame
 input_list = [] # List with files and tick
 rect_list:list[tuple[Rect, Callable]] = [] #List of buttons
-delta_time_list:list[Wait] = [] #List of delta time objects; this is global
+delta_time_list:list[Wait] = [] #List of delta time objects
+global_delta_time_list = []
+scene_name_dict = {}
 
 dynamic_containers = (surface_dict,
                       drawn_list,
@@ -47,6 +49,9 @@ class Counters():
     _100 = 0
     _50 = 0
     miss = 0
+
+class StringFlags():
+    cur_scene:str = ''
 
 #Gameplay variables
 note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen

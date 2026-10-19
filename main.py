@@ -2,11 +2,12 @@
 # pylint: disable=no-member
 import time
 import pygame
+from typing import TYPE_CHECKING
 
-from modules.classes import Text, Wait, Button
+from modules.classes import Text, Wait, Scene
 from modules.constants import *
 from modules.shared_variables import *
-from modules.scripts import load_images, handle_fblits
+from modules.scripts import load_images
 
 #Pygame variable initialization
 screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
@@ -18,14 +19,19 @@ import scenes.gameplay
 import scenes.level_selector
 import scenes.main_menu
 
-current_scene = scenes.main_menu.scene
+StringFlags.cur_scene = 'gameplay'
+current_scene = None
 
 #Text declaration
-fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
+fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 
-def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
+def fps_wrapper():
+    fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
+    print("fps wrapper ran")
 fps_text.draw()
-fps_update = Wait(.1, fps_wrapper, repeats=True)
+fps_update = Wait(.1, fps_wrapper, repeats=True, is_global=True)
+
+print(delta_time_list, '\n',fps_update in delta_time_list)
 
 #This system checks if a note is out sync with the actual time
 expected_time = time.time()
@@ -35,7 +41,13 @@ ticks_to_increment = 1
 #Main loop
 while Flags.running:
     if Flags.new_scene:
+        current_scene = scene_name_dict[StringFlags.cur_scene]
         current_scene.init_scene()
+        print(delta_time_list, "\n", fps_update in delta_time_list)
+
+    fps_text.draw()
+
+    assert isinstance(current_scene, Scene)
     #Get events
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -52,6 +64,10 @@ while Flags.running:
 
     #Get delta time events
     for i in delta_time_list:
+        if i.time_passed():
+            i.run()
+
+    for i in global_delta_time_list:
         if i.time_passed():
             i.run()
 

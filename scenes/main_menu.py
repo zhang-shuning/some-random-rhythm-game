@@ -7,11 +7,13 @@ pygame.font.init()
 def exit_game():
     Flags.running = False
 
+background = Sprite(-1, (0,0), "title_image")
 play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100), rect_color=(100,100,0))
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
 exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game, rect_color=(0,100,100))
 
 def init():
+    background.draw()
     play_button.draw()
     settings_button.draw()
     exit_button.draw()
@@ -27,7 +29,7 @@ def render(screen):
         screen.fblits(fblits_list)
         pygame.display.flip()
 
-scene = Scene(event_handler, render=render, scene_init_function=init)
+scene = Scene("main_menu", event_handler, render=render, scene_init_function=init)
 main_menu_elements = (play_button, settings_button, exit_button)
 
 def open_main_menu():

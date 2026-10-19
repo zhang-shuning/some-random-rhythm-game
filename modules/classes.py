@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, rect_list
+from modules.shared_variables import *
 from modules.constants import *
 from modules.scripts import clear_dynamic_lists
 
@@ -152,7 +152,8 @@ class Sprite(DrawnEntity):
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
-    def __init__(self, delta, func:Callable, *args, repeats=False, use_game_tick=False) -> None:
+    def __init__(self, delta, func:Callable, *args,
+                repeats=False, use_game_tick=False, is_global = False) -> None:
         if use_game_tick:
             self.tick = lambda:Counters.game_ticks
         else:
@@ -163,7 +164,10 @@ class Wait():
         self.args = args
         if repeats:
             self.delta = delta
-        delta_time_list.append(self)
+        if is_global:
+            global_delta_time_list.append(self)
+        else:
+            delta_time_list.append(self)
 
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
@@ -242,16 +246,19 @@ class Button(Text):
 
 class Scene():
     '''All scenes must have this class'''
-    def __init__(self, event_handler:Callable[[pygame.Event], None],
-                 held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
-                 render:Callable[[pygame.Surface], None] = lambda x:None,
-                 after_render:Callable[[],None] = lambda:None,
-                 scene_init_function:Callable[[], None] = lambda:None) -> None:
+    def __init__(self,
+                scene_name:str,
+                event_handler:Callable[[pygame.Event], None],
+                held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
+                render:Callable[[pygame.Surface], None] = lambda x:None,
+                after_render:Callable[[],None] = lambda:None,
+                scene_init_function:Callable[[], None] = lambda:None) -> None:
         self.handle_event = event_handler
         self.handle_held_keys = held_key_handler
         self.render = render
         self.after_render = after_render
         self.scene_init_function = scene_init_function
+        scene_name_dict[scene_name] = self
 
     def init_scene(self):
         '''Removes objects from the previous scene, and initiaizes the current one'''

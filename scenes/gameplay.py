@@ -178,7 +178,7 @@ def scene_init():
     for i in hit_lights:
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
-scene = Scene(events, held_keys, render, after_render, scene_init)
+scene = Scene("gameplay", events, held_keys, render, after_render, scene_init)
 
 class JudgementTextHandler(Wait):
     '''

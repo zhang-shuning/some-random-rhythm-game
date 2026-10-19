@@ -59,11 +59,6 @@ MISS_RANGE = _get_range(MISS_TICKS)
 
 IMAGE_FILE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
-class ScreenEnum(enum.Enum):
-    '''Contains the names of the screens in the game'''
-    GAMEPLAY = enum.auto()
-    MAIN_MENU = enum.auto()
-
 if __name__ == "__main__":
     print(EXCELLENT_TICKS)
     print(GOOD_TICKS)
