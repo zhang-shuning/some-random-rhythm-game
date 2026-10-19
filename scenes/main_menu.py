@@ -1,20 +1,33 @@
 from modules.classes import *
+from modules.scripts import handle_fblits
+from modules.shared_variables import fblits_list, Counters, Flags
 
 pygame.font.init()
 
 def exit_game():
     Flags.running = False
 
-play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100))
+play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100), rect_color=(100,100,0))
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
-exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game)
+exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game, rect_color=(0,100,100))
+
+def init():
+    play_button.draw()
+    settings_button.draw()
+    exit_button.draw()
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_ESCAPE:
             Flags.running = False
 
-scene = Scene(event_handler) 
+def render(screen):
+    if Counters.ticks % FRAME_FREQUENCY == 0:
+        handle_fblits()
+        screen.fblits(fblits_list)
+        pygame.display.flip()
+
+scene = Scene(event_handler, render=render, scene_init_function=init)
 main_menu_elements = (play_button, settings_button, exit_button)
 
 def open_main_menu():
@@ -24,46 +37,3 @@ def open_main_menu():
 def close_main_menu():
     for element in main_menu_elements:
         element.stop_draw()
-
-if __name__ == "__main__":
-    from modules.scripts import *
-    open_main_menu()
-    clock = pygame.Clock()
-    screen = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
-    #Main loop
-    #Get delta time events
-    while Flags.running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                Flags.running = False
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_ESCAPE:
-                    Flags.running = False
-        for i in delta_time_list:
-            if i.time_passed():
-                i.run()
-
-        #Rendering
-        if Counters.game_ticks % FRAME_FREQUENCY == 0:
-            #Clear screen
-            screen.fill((100,0,0))
-            #Draw screen
-            handle_fblits()
-            screen.fblits(fblits_list)
-            #Draw notes
-            if not Flags.is_paused:
-                for note_row in note_list:
-                    for note in note_row:
-                        note.move()
-
-            for i in destroy_list:
-                i.destroy()
-            destroy_list.clear()
-
-            pygame.display.flip()
-
-        #Next tick
-        if not Flags.is_paused:
-            Counters.game_ticks+=1
-        Counters.ticks+=1
-        clock.tick(TPS_CAP)

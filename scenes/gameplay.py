@@ -6,7 +6,7 @@ from random import randint
 import pygame
 
 from modules.scripts import handle_fblits
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene
+from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene, Button
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -37,6 +37,26 @@ combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 #Input array
 input_array = []
 
+#Button function declaration
+def pause():
+    Flags.is_paused = True
+    unpause_button.draw()
+    restart_button.draw()
+    exit_button.draw()
+
+def unpause():
+    Flags.is_paused = False
+    unpause_button.stop_draw()
+    restart_button.stop_draw()
+    exit_button.stop_draw()
+
+def stop_game():
+    Flags.running=False
+
+unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
+exit_button = Button("Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=stop_game)
+
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
     random_1 = randint(1,4)
@@ -53,11 +73,6 @@ def events(event: pygame.Event):
         #I shouldn't need any cleanup after quit, so I should be able to keep this
         #For all scenes
         Flags.running = False
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        #Button check
-        for i in rect_list:
-            if i[0].collidepoint(event.pos):
-                i[1]()
         if DEBUG:
             mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
             print(f"mouse pos {pygame.mouse.get_pos()}")
@@ -122,7 +137,7 @@ def held_keys(keys):
 
 def render(screen):
     #Rendering
-    if Counters.game_ticks % FRAME_FREQUENCY == 0:
+    if Counters.game_ticks % FRAME_FREQUENCY == 0 or (Flags.is_paused and Counters.ticks % FRAME_FREQUENCY == 0):
         #Clear screen
         screen.fill((100,0,0))
         #Update score

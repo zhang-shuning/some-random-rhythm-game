@@ -18,30 +18,10 @@ import scenes.gameplay
 import scenes.level_selector
 import scenes.main_menu
 
-current_scene = scenes.gameplay.scene
+current_scene = scenes.main_menu.scene
 
 #Text declaration
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
-
-#Button function declaration
-def pause():
-    Flags.is_paused = True
-    unpause_button.draw()
-    restart_button.draw()
-    exit_button.draw()
-
-def unpause():
-    Flags.is_paused = False
-    unpause_button.stop_draw()
-    restart_button.stop_draw()
-    exit_button.stop_draw()
-
-def stop_game():
-    Flags.running=False
-
-unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
-restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
-exit_button = Button("Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=stop_game)
 
 def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
@@ -58,6 +38,12 @@ while Flags.running:
         current_scene.init_scene()
     #Get events
     for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            #Button check
+            for i in rect_list:
+                if i[0].collidepoint(event.pos):
+                    i[1]()
+
         current_scene.handle_event(event)
 
     #Held keys
