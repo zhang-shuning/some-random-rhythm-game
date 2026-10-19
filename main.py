@@ -38,23 +38,17 @@ note_test_wrapper()
 Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
 
 #Text declaration
-mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
 fps_text = Text("0", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
-score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
-acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
-combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
 #Button function declaration
 def pause():
     Flags.is_paused = True
-    Flags.current_frame_drawn = False
     unpause_button.draw()
     restart_button.draw()
     exit_button.draw()
 
 def unpause():
     Flags.is_paused = False
-    Flags.current_frame_drawn = True
     unpause_button.stop_draw()
     restart_button.stop_draw()
     exit_button.stop_draw()
@@ -70,9 +64,6 @@ score_text.draw()
 acc_text.draw()
 combo_text.draw()
 
-#Input array
-input_array = []
-
 def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True)
@@ -86,111 +77,19 @@ ticks_to_increment = 1
 while Flags.running:
     #Get events
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            #I shouldn't need any cleanup after quit, so I should be able to keep this
-            #For all scenes
-            Flags.running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            #Button check
-            for i in rect_list:
-                if i[0].collidepoint(event.pos):
-                    i[1]()
-            if DEBUG:
-                mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
-                print(f"mouse pos {pygame.mouse.get_pos()}")
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                Flags.running = False
-            if event.key == pygame.K_d:
-                scenes.gameplay.judge_note(0)
-                scenes.gameplay.keypress.play()
-                held_notes[0] = True
-                input_array.append((Counters.ticks, 0))
-            elif event.key == pygame.K_f:
-                scenes.gameplay.judge_note(1)
-                scenes.gameplay.keypress.play()
-                held_notes[1] = True
-                input_array.append((Counters.ticks, 1))
-            elif event.key == pygame.K_j:
-                scenes.gameplay.judge_note(2)
-                scenes.gameplay.keypress.play()
-                held_notes[2] = True
-                input_array.append((Counters.ticks, 2))
-            elif event.key == pygame.K_k:
-                scenes.gameplay.judge_note(3)
-                scenes.gameplay.keypress.play()
-                input_array.append((Counters.ticks, 3))
-                held_notes[3] = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_d:
-                scenes.gameplay.judge_ln_release(0)
-                held_notes[0] = False
-                input_array.append((Counters.ticks, 4))
-            elif event.key == pygame.K_f:
-                scenes.gameplay.judge_ln_release(1)
-                held_notes[1] = False
-                input_array.append((Counters.ticks, 5))
-            elif event.key == pygame.K_j:
-                scenes.gameplay.judge_ln_release(2)
-                held_notes[2] = False
-                input_array.append((Counters.ticks, 6))
-            elif event.key == pygame.K_k:
-                scenes.gameplay.judge_ln_release(3)
-                held_notes[3] = False
-                input_array.append((Counters.ticks, 7))
-            if event.key == pygame.K_1:
-                if not Flags.is_paused:
-                    pause()
-                else:
-                    unpause()
-
+        current_scene.handle_event(event)
 
     #Held keys
     keys = pygame.key.get_pressed()
-    #Only check if the frame is being drawn for hitlights because hitlights are rendered
-    if Counters.game_ticks % FRAME_FREQUENCY == 0:
-        if Flags.current_frame_drawn:
-            if keys[pygame.K_d]:
-                scenes.gameplay.enable_hitlight(0)
-            if keys[pygame.K_f]:
-                scenes.gameplay.enable_hitlight(1)
-            if keys[pygame.K_j]:
-                scenes.gameplay.enable_hitlight(2)
-            if keys[pygame.K_k]:
-                scenes.gameplay.enable_hitlight(3)
+    current_scene.handle_held_keys(keys)
 
     #Get delta time events
     for i in delta_time_list:
         if i.time_passed():
             i.run()
 
-    #Rendering
-    if Counters.game_ticks % FRAME_FREQUENCY == 0:
-        #Clear screen
-        screen.fill((100,0,0))
-        #Update score
-        if Flags.score_updated:
-            score_text.update_and_draw_text(f"{Counters.score}")
-            Flags.score_updated = False
-        if Flags.note_hit_or_missed:
-            combo_text.update_and_draw_text(f"{Counters.combo}")
-            scenes.gameplay.calculate_acc()
-            acc_text.update_and_draw_text(f"{Counters.acc:.2f}%")
-            Flags.note_hit_or_missed = False
-        #Draw screen
-        handle_fblits()
-        screen.fblits(fblits_list)
-        #Move notes
-        if Flags.current_frame_drawn:
-            for note_row in note_list:
-                for note in note_row:
-                    note.move()
-
-        for i in destroy_list:
-            i.destroy()
-        destroy_list.clear()
-
-        pygame.display.flip()
+    #Render
+    current_scene.render()
 
     #If time is too off the expected time, go multiple ticks instead
     expected_time += S_PER_TICK
@@ -203,7 +102,10 @@ while Flags.running:
         expected_time += ticks_to_increment*S_PER_TICK
 
     #Next tick
-    if Flags.current_frame_drawn:
+    if not Flags.is_paused:
         Counters.game_ticks+=1
     Counters.ticks+=1
+
+    Flags.new_scene = False
+
     clock.tick(TPS_CAP)

@@ -47,7 +47,7 @@ if __name__ == "__main__":
             handle_fblits()
             screen.fblits(fblits_list)
             #Draw notes
-            if Flags.current_frame_drawn:
+            if not Flags.is_paused:
                 for note_row in note_list:
                     for note in note_row:
                         note.move()
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             pygame.display.flip()
 
         #Next tick
-        if Flags.current_frame_drawn:
+        if not Flags.is_paused:
             Counters.game_ticks+=1
         Counters.ticks+=1
         clock.tick(TPS_CAP)

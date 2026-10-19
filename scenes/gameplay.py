@@ -4,6 +4,7 @@ from typing import override
 
 import pygame
 
+from modules.scripts import handle_fblits
 from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect
 from modules.constants import *
 from modules.shared_variables import *
@@ -17,14 +18,133 @@ hit.set_volume(.1)
 keypress.set_volume(.2)
 miss.set_volume(.6)
 
+#Sprites
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
 judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
+#Text
 excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=120, text_color=(0, 150, 255), origin=(.5,.5))
 good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(34, 139, 34), origin=(.5,.5))
 ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(175, 225, 175), origin=(.5,.5))
 bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 211, 211), origin=(.5,.5))
 miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
+mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
+score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
+acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
+combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
+
+#Input array
+input_array = []
+
+def events(event: pygame.Event):
+    if event.type == pygame.QUIT:
+        #I shouldn't need any cleanup after quit, so I should be able to keep this
+        #For all scenes
+        Flags.running = False
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        #Button check
+        for i in rect_list:
+            if i[0].collidepoint(event.pos):
+                i[1]()
+        if DEBUG:
+            mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
+            print(f"mouse pos {pygame.mouse.get_pos()}")
+    if event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_ESCAPE:
+            Flags.running = False
+        if event.key == pygame.K_d:
+            judge_note(0)
+            keypress.play()
+            held_notes[0] = True
+            input_array.append((Counters.ticks, 0))
+        elif event.key == pygame.K_f:
+            judge_note(1)
+            keypress.play()
+            held_notes[1] = True
+            input_array.append((Counters.ticks, 1))
+        elif event.key == pygame.K_j:
+            judge_note(2)
+            keypress.play()
+            held_notes[2] = True
+            input_array.append((Counters.ticks, 2))
+        elif event.key == pygame.K_k:
+            judge_note(3)
+            keypress.play()
+            input_array.append((Counters.ticks, 3))
+            held_notes[3] = True
+    if event.type == pygame.KEYUP:
+        if event.key == pygame.K_d:
+            judge_ln_release(0)
+            held_notes[0] = False
+            input_array.append((Counters.ticks, 4))
+        elif event.key == pygame.K_f:
+            judge_ln_release(1)
+            held_notes[1] = False
+            input_array.append((Counters.ticks, 5))
+        elif event.key == pygame.K_j:
+            judge_ln_release(2)
+            held_notes[2] = False
+            input_array.append((Counters.ticks, 6))
+        elif event.key == pygame.K_k:
+            judge_ln_release(3)
+            held_notes[3] = False
+            input_array.append((Counters.ticks, 7))
+        if event.key == pygame.K_1:
+            if not Flags.is_paused:
+                pause()
+            else:
+                unpause()
+
+def held_keys(keys):
+    #Only check if the frame is being drawn for hitlights because hitlights are rendered
+    if Counters.game_ticks % FRAME_FREQUENCY == 0:
+        if not Flags.is_paused:
+            if keys[pygame.K_d]:
+                enable_hitlight(0)
+            if keys[pygame.K_f]:
+                enable_hitlight(1)
+            if keys[pygame.K_j]:
+                enable_hitlight(2)
+            if keys[pygame.K_k]:
+                enable_hitlight(3)
+
+def render(screen):
+    #Rendering
+    if Counters.game_ticks % FRAME_FREQUENCY == 0:
+        #Clear screen
+        screen.fill((100,0,0))
+        #Update score
+        if Flags.score_updated:
+            score_text.update_and_draw_text(f"{Counters.score}")
+            Flags.score_updated = False
+        if Flags.note_hit_or_missed:
+            combo_text.update_and_draw_text(f"{Counters.combo}")
+            calculate_acc()
+            acc_text.update_and_draw_text(f"{Counters.acc:.2f}%")
+            Flags.note_hit_or_missed = False
+        #Draw screen
+        handle_fblits()
+        screen.fblits(fblits_list)
+        #Move notes
+        if not Flags.is_paused:
+            for note_row in note_list:
+                for note in note_row:
+                    note.move()
+
+        for i in destroy_list:
+            i.destroy()
+        destroy_list.clear()
+
+        pygame.display.flip()
+
+def after_render():
+    pass
+
+def scene_init():
+    pass
+
+Scene(events, held_keys, render, after_render, scene_init)
+
 
 class JudgementTextHandler(Wait):
     '''

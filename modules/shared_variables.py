@@ -32,8 +32,8 @@ class Flags():
     running = True
     score_updated = False
     note_hit_or_missed = False
-    current_frame_drawn = True
     is_paused = False
+    new_scene = True
 
 class Counters():
     '''Stores all the counters'''
@@ -47,12 +47,6 @@ class Counters():
     _100 = 0
     _50 = 0
     miss = 0
-
-class GameplayFunctions():
-    event_handler:Callable[[pygame.Event], None] = staticmethod(lambda x:None)
-    held_key_handler:Callable[[], None] = staticmethod(lambda:None)
-    render:Callable[[], None] = staticmethod(lambda:None)
-    after_render:Callable[[], None] = staticmethod(lambda:None)
 
 #Gameplay variables
 note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen

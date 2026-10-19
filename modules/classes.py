@@ -243,12 +243,12 @@ class Button(Text):
 class Scene():
     '''All scenes must have this class'''
     def __init__(self, event_handler:Callable[[pygame.Event], None],
-                 held_key_handler:Callable[[], None] = lambda:None,
-                 render:Callable[[], None] = lambda:None,
+                 held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
+                 render:Callable[[pygame.Surface], None] = lambda x:None,
                  after_render:Callable[[],None] = lambda:None,
                  scene_init_function:Callable[[], None] = lambda:None) -> None:
-        self.event_handler = event_handler
-        self.held_key_handler = held_key_handler
+        self.handle_event = event_handler
+        self.handle_held_keys = held_key_handler
         self.render = render
         self.after_render = after_render
         self.scene_init_function = scene_init_function
@@ -257,10 +257,3 @@ class Scene():
         '''Removes objects from the previous scene, and initiaizes the current one'''
         clear_dynamic_lists()
         self.scene_init_function()
-        self.update_handlers()
-
-    def update_handlers(self) -> None:
-        '''Update the event, held key handlers and the render cycle'''
-        GameplayFunctions.event_handler = self.event_handler
-        GameplayFunctions.held_key_handler = self.held_key_handler
-        GameplayFunctions.render = self.render
