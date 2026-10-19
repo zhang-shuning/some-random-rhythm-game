@@ -1,9 +1,13 @@
 from modules.classes import *
 
 pygame.font.init()
+
+def exit_game():
+    Flags.running = False
+
 play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100))
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
-exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=lambda: Flags.running = False)
+exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game)
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import logging
 import pygame
 
-from modules.shared_variables import delta_time_list, Flags, Counters, GameplayFunctions, drawn_list, images_dict, rect_list
+from modules.shared_variables import delta_time_list, Flags, Counters, drawn_list, images_dict, rect_list
 from modules.constants import *
 from modules.scripts import clear_dynamic_lists
 

@@ -20,7 +20,7 @@ import scenes.gameplay
 import scenes.level_selector
 import scenes.main_menu
 
-current_scene = scenes.main_menu.scene
+current_scene = scenes.gameplay.scene
 scenes.gameplay.draw_assets()
 
 #Just spawns some notes every 3 seconds
@@ -60,10 +60,6 @@ unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_
 restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
 exit_button = Button("Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=stop_game)
 
-score_text.draw()
-acc_text.draw()
-combo_text.draw()
-
 def fps_wrapper(): fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True)
@@ -89,7 +85,7 @@ while Flags.running:
             i.run()
 
     #Render
-    current_scene.render()
+    current_scene.render(screen)
 
     #If time is too off the expected time, go multiple ticks instead
     expected_time += S_PER_TICK

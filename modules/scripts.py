@@ -4,7 +4,6 @@ import pathlib
 
 from modules.shared_variables import *
 from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE
-from modules.classes import Sprite
 
 def switch_screen(screen:int):
     '''Switch to screen in the input'''
@@ -14,7 +13,7 @@ def init_screens():
 
 def reset_game_screen():
     '''Resets the game scene'''
-    Sprite(-1, (HORIZONTAL_SIZE/4, 0), "test").draw()
+    print("test")
 
 def _load_image(image_path:str|pathlib.Path, texture_name:str, transparent=False):
     '''Loads a single image and saves to dictionary based from filename'''
@@ -50,5 +49,6 @@ def handle_fblits():
 def clear_dynamic_lists() -> None:
     for i in dynamic_containers:
         i.clear()
+
 if __name__ == "__main__":
     load_images()

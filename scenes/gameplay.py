@@ -5,7 +5,7 @@ from typing import override
 import pygame
 
 from modules.scripts import handle_fblits
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect
+from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -143,8 +143,7 @@ def after_render():
 def scene_init():
     pass
 
-Scene(events, held_keys, render, after_render, scene_init)
-
+scene = Scene(events, held_keys, render, after_render, scene_init)
 
 class JudgementTextHandler(Wait):
     '''
@@ -438,10 +437,16 @@ def enable_hitlight(n):
         hit_lights[n][0].draw()
 
 def draw_assets():
+    score_text.draw()
+    acc_text.draw()
+    combo_text.draw()
     chart.draw()
     judgement_line.draw()
 
 def stop_assets():
+    score_text.stop_draw()
+    acc_text.stop_draw()
+    combo_text.stop_draw()
     chart.stop_draw()
     judgement_line.stop_draw()
     note_list.clear()
