@@ -19,7 +19,7 @@ import scenes.gameplay
 import scenes.level_selector
 import scenes.main_menu
 
-StringFlags.cur_scene = 'gameplay'
+StringFlags.cur_scene = 'main_menu'
 current_scene = None
 
 #Text declaration
@@ -27,11 +27,8 @@ fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 
 def fps_wrapper():
     fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
-    print("fps wrapper ran")
 fps_text.draw()
 fps_update = Wait(.1, fps_wrapper, repeats=True, is_global=True)
-
-print(delta_time_list, '\n',fps_update in delta_time_list)
 
 #This system checks if a note is out sync with the actual time
 expected_time = time.time()
@@ -43,7 +40,7 @@ while Flags.running:
     if Flags.new_scene:
         current_scene = scene_name_dict[StringFlags.cur_scene]
         current_scene.init_scene()
-        print(delta_time_list, "\n", fps_update in delta_time_list)
+        Flags.new_scene = False
 
     fps_text.draw()
 
@@ -88,7 +85,5 @@ while Flags.running:
     if not Flags.is_paused:
         Counters.game_ticks+=1
     Counters.ticks+=1
-
-    Flags.new_scene = False
 
     clock.tick(TPS_CAP)
