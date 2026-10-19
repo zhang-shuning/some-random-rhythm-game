@@ -10,6 +10,8 @@ from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Sce
 from modules.constants import *
 from modules.shared_variables import *
 
+
+
 #SFX
 hit = pygame.Sound("assets/sfx/hit.wav")
 keypress = pygame.Sound("assets/sfx/keypress.wav")
@@ -19,11 +21,20 @@ hit.set_volume(.1)
 keypress.set_volume(.2)
 miss.set_volume(.6)
 
+#Text
+mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
+score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
+acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
+combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=120, text_color=(0, 150, 255), origin=(.5,.5))
 good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(34, 139, 34), origin=(.5,.5))
 ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(175, 225, 175), origin=(.5,.5))
 bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 211, 211), origin=(.5,.5))
 miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
+
+#Sprites
+chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
+judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
 #Button function declaration
 def pause():

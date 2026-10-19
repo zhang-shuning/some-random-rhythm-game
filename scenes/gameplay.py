@@ -1,22 +1,12 @@
-from random import randint
+import pathlib
+import struct
 
 import pygame
 
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene, Button
-from modules.constants import *
+from modules.classes import Wait, WaitExtendable, Scene
 from modules.shared_variables import *
-
-#Sprites
-chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
-judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
-
-#Text
-mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
-score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
-acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
-combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
 
 #Input array
 input_array = []
@@ -53,7 +43,7 @@ def events(event: pygame.Event):
             input_array.append((Counters.ticks, 3))
             held_notes[3] = True
         elif event.key == pygame.K_z:
-            print(input_array)
+            make_replay_bytearray()
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_d:
             judge_ln_release(0)
@@ -142,3 +132,23 @@ def stop_assets():
     chart.stop_draw()
     judgement_line.stop_draw()
     note_list.clear()
+
+def make_replay_bytearray():
+    #Version (8 bits)
+    #Framerate
+    #Tick rate
+    #32 bits gameticks, 4 bits time
+    byte_list = bytearray()
+    byte_list.append(1)
+    byte_list += struct.pack(">ii", FPS_CAP, TPS_CAP)
+    for i in input_array:
+        if i[0] > 2**32-1:
+            raise ValueError("Time is too big.")
+        byte_list += struct.pack(">ib", i[0], i[1])
+    print(len(byte_list))
+
+
+def save_replay():
+    pathlib.Path("replays").touch()
+    with open(pathlib.Path("replays/latest.replay"), 'w') as f:
+        f.write("")
