@@ -1,3 +1,5 @@
+import struct
+
 import pygame
 import pathlib
 
@@ -122,8 +124,18 @@ def read_replay(replay_file:pathlib.Path):
     '''Reads the replay and returns a tuple of data'''
     with open(replay_file, "rb") as f:
         f.seek(6)
-        version = f.read(1)
-        if version.hex() == '01':
+        header = f.read(9)
+        header_info = struct.unpack(">bii", header)
+        input_list = []
+        if header_info[0] == 1:
             print("version 1")
-            fps = f.read(4)
-            tps = f.read(4)
+            data = f.read() #It's better to read in chunks, but effort...
+            if len(data) % 5 != 0:
+                print("Something went wong with the replay")
+                return ()
+            for i in range(len(data)//5):
+                print(data[i*5:i*5+5])
+                cur_input = struct.unpack(">ib", data[i*5:i*5+5])
+                input_list.append((cur_input[0], cur_input[1]))
+            print(input_list)
+

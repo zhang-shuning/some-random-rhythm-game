@@ -11,6 +11,7 @@ intro_string = '''
 This is a (hopefully) temporary text based console.
 So far:
 1 goes to game
+2 goes to replay test
 exit closes the program
 back goes back to main menu
 '''

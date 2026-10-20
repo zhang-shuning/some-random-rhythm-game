@@ -50,7 +50,9 @@ def unpause():
     exit_button.stop_draw()
 
 def stop_game():
-    Flags.running=False
+    unpause()
+    Flags.new_scene = True
+    StringFlags.cur_scene = "level_selector"
 
 unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
 restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)

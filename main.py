@@ -18,7 +18,7 @@ load_images()
 from scenes.init_scenes import init_scenes
 init_scenes()
 
-StringFlags.cur_scene = 'main_menu'
+StringFlags.cur_scene = 'level_selector'
 current_scene = None
 
 #Text declaration
