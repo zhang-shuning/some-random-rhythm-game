@@ -43,7 +43,7 @@ def events(event: pygame.Event):
             input_array.append((Counters.ticks, 3))
             held_notes[3] = True
         elif event.key == pygame.K_z:
-            make_replay_bytearray()
+            save_replay()
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_d:
             judge_ln_release(0)
@@ -133,7 +133,7 @@ def stop_assets():
     judgement_line.stop_draw()
     note_list.clear()
 
-def make_replay_bytearray():
+def make_replay_bytearray() -> bytearray:
     #Version (8 bits)
     #Framerate
     #Tick rate
@@ -145,10 +145,10 @@ def make_replay_bytearray():
         if i[0] > 2**32-1:
             raise ValueError("Time is too big.")
         byte_list += struct.pack(">ib", i[0], i[1])
-    print(len(byte_list))
-
+    print(byte_list)
+    return byte_list
 
 def save_replay():
     pathlib.Path("replays").touch()
-    with open(pathlib.Path("replays/latest.replay"), 'w') as f:
-        f.write("")
+    with open(pathlib.Path("replays/latest.replay"), 'wb') as f:
+        f.write(make_replay_bytearray())
