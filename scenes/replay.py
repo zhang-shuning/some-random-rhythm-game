@@ -112,10 +112,18 @@ def scene_init():
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
 def make_scene():
+    '''
+    Function that makes the scene
+    Thinking back, it might've been better to just put this in the class...
+    '''
     Scene("replay", event_handler=events, held_key_handler=held_keys,render=render,scene_init_function=scene_init)
 
 def read_replay(replay_file:pathlib.Path):
+    '''Reads the replay and returns a tuple of data'''
     with open(replay_file, "rb") as f:
         f.seek(6)
-        thing = f.read(1)
-        print(thing.hex())
+        version = f.read(1)
+        if version.hex() == '01':
+            print("version 1")
+            fps = f.read(4)
+            tps = f.read(4)

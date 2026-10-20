@@ -8,13 +8,14 @@ from modules.classes import Text, Wait, Scene
 from modules.constants import *
 from modules.shared_variables import *
 from modules.scripts import load_images
-from scenes.init_scenes import init_scenes
 
 #Pygame variable initialization
 screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
+
+from scenes.init_scenes import init_scenes
 init_scenes()
 
 StringFlags.cur_scene = 'main_menu'
