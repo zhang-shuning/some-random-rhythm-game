@@ -16,11 +16,10 @@ play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100), rect_colo
 settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
 exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game, rect_color=(0,100,100))
 
+main_menu_elements = (play_button, settings_button, exit_button, background)
+
 def init():
-    background.draw()
-    play_button.draw()
-    settings_button.draw()
-    exit_button.draw()
+    open_main_menu()
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:
@@ -34,8 +33,8 @@ def render(screen):
         screen.fblits(fblits_list)
         pygame.display.flip()
 
-scene = Scene("main_menu", event_handler, render=render, scene_init_function=init)
-main_menu_elements = (play_button, settings_button, exit_button)
+def make_scene():
+    Scene("main_menu", event_handler, render=render, scene_init_function=init)
 
 def open_main_menu():
     for element in main_menu_elements: 

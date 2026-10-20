@@ -123,7 +123,8 @@ def scene_init():
     for i in hit_lights:
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
-scene = Scene("gameplay", events, held_keys, render, after_render, scene_init)
+def make_scene():
+    Scene("gameplay", events, held_keys, render, after_render, scene_init)
 
 def stop_assets():
     score_text.stop_draw()
@@ -138,7 +139,7 @@ def make_replay_bytearray() -> bytearray:
     #Framerate
     #Tick rate
     #32 bits gameticks, 4 bits time
-    byte_list = bytearray()
+    byte_list = bytearray(b"RPLY\032\n")
     byte_list.append(1)
     byte_list += struct.pack(">ii", FPS_CAP, TPS_CAP)
     for i in input_array:

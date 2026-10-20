@@ -27,6 +27,9 @@ def run_command(command:str):
     elif command == "1":
         Flags.new_scene = True
         StringFlags.cur_scene = "gameplay"
+    elif command == '2':
+        Flags.new_scene = True
+        StringFlags.cur_scene = "replay"
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:
@@ -54,5 +57,6 @@ def scene_init():
     intro_text.draw()
     text_box.draw()
 
-scene = Scene("level_selector", event_handler=event_handler,
-               render=render, scene_init_function=scene_init)
+def make_scene():
+    scene = Scene("level_selector", event_handler=event_handler,
+                render=render, scene_init_function=scene_init)

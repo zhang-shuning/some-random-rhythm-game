@@ -1,4 +1,5 @@
 import pygame
+import pathlib
 
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
@@ -33,6 +34,8 @@ def events(event: pygame.Event):
             judge_note(3)
             keypress.play()
             held_notes[3] = True
+        elif event.key == pygame.K_z:
+            read_replay(pathlib.Path("replays/latest.replay"))
     if event.type == pygame.KEYUP:
         if event.key == pygame.K_d:
             judge_ln_release(0)
@@ -107,3 +110,12 @@ def scene_init():
     Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
     for i in hit_lights:
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+
+def make_scene():
+    Scene("replay", event_handler=events, held_key_handler=held_keys,render=render,scene_init_function=scene_init)
+
+def read_replay(replay_file:pathlib.Path):
+    with open(replay_file, "rb") as f:
+        f.seek(6)
+        thing = f.read(1)
+        print(thing.hex())
