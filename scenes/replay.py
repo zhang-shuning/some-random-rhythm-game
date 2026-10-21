@@ -1,7 +1,7 @@
 '''The scene of replays'''
 
+from collections import deque
 import struct
-import enum
 
 import pygame
 import pathlib
@@ -14,7 +14,7 @@ from modules.shared_variables import *
 
 REPLAY_BUFFER_AMOUNT = 8
 replay_header = {}
-replay_buffer = []
+replay_buffer = deque(maxlen=8)
 replay_remaining_inputs = []
 
 def events(event: pygame.Event):
@@ -37,7 +37,20 @@ def events(event: pygame.Event):
                 unpause()
 
 def pre_render():
-    pass
+    for i in replay_buffer:
+        if i[1] >= Counters.ticks * TPS_CAP / replay_header["tps"]:
+            if 0 <= i[2] <= 3:
+                judge_note(i[2])
+                held_notes[i[2]] = True
+            elif 4 <= i[2] <= 7:
+                judge_ln_release(i[2]-4)
+                held_notes[i[2]-4] = False
+        else:
+            break
+
+    for i in enumerate(held_notes):
+        if held_notes[i[1]] is True:
+            enable_hitlight(i[0]) 
 
 def render(screen):
     #Rendering
@@ -86,6 +99,8 @@ def scene_cleanup():
     replay_header.clear()
     replay_header.clear()
     replay_remaining_inputs.clear()
+    for i in range(4):
+        held_notes[i] = False
 
 def make_scene():
     '''
@@ -102,7 +117,7 @@ def read_replay(replay_file:pathlib.Path):
         header_info = struct.unpack(">bii", header)
         replay_header["version"] = header_info[0]
         replay_header["fps"] = header_info[1]
-        replay_header['inputs'] = header_info[2]
+        replay_header['tps'] = header_info[2]
         if header_info[0] == 1:
             print("version 1")
             data = f.read() #It's better to read in chunks, but effort...

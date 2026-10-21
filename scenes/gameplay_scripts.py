@@ -36,6 +36,8 @@ miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255,
 chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
 judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
 
+held_notes = [False, False, False, False]
+
 #Button function declaration
 def pause():
     Flags.is_paused = True

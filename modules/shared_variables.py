@@ -24,8 +24,6 @@ scene_name_dict = {}
 
 #Gameplay variables
 note_list:list[list[LongNote|Note]] = [[],[],[],[]] #List of all notes on screen
-held_notes = [False, False, False, False]
-
 
 dynamic_containers = (surface_dict,
                       drawn_list,

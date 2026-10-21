@@ -113,6 +113,8 @@ def scene_cleanup():
     Counters.reset()
     for i in note_list:
         i.clear()
+    for i in range(4):
+        held_notes[i] = False
 
 def scene_init():
     score_text.draw()
