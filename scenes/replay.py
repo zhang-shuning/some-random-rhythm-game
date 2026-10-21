@@ -28,55 +28,16 @@ def events(event: pygame.Event):
     if event.type == pygame.KEYDOWN:
         if event.key == pygame.K_ESCAPE:
             Flags.running = False
-        if event.key == pygame.K_d:
-            judge_note(0)
-            keypress.play()
-            held_notes[0] = True
-        elif event.key == pygame.K_f:
-            judge_note(1)
-            keypress.play()
-            held_notes[1] = True
-        elif event.key == pygame.K_j:
-            judge_note(2)
-            keypress.play()
-            held_notes[2] = True
-        elif event.key == pygame.K_k:
-            judge_note(3)
-            keypress.play()
-            held_notes[3] = True
         elif event.key == pygame.K_z:
             read_replay(pathlib.Path("replays/latest.replay"))
-    if event.type == pygame.KEYUP:
-        if event.key == pygame.K_d:
-            judge_ln_release(0)
-            held_notes[0] = False
-        elif event.key == pygame.K_f:
-            judge_ln_release(1)
-            held_notes[1] = False
-        elif event.key == pygame.K_j:
-            judge_ln_release(2)
-            held_notes[2] = False
-        elif event.key == pygame.K_k:
-            judge_ln_release(3)
-            held_notes[3] = False
         if event.key == pygame.K_1:
             if not Flags.is_paused:
                 pause()
             else:
                 unpause()
 
-def held_keys(keys):
-    #Only check if the frame is being drawn for hitlights because hitlights are rendered
-    if Counters.game_ticks % FRAME_FREQUENCY == 0:
-        if not Flags.is_paused:
-            if keys[pygame.K_d]:
-                enable_hitlight(0)
-            if keys[pygame.K_f]:
-                enable_hitlight(1)
-            if keys[pygame.K_j]:
-                enable_hitlight(2)
-            if keys[pygame.K_k]:
-                enable_hitlight(3)
+def pre_render():
+    pass
 
 def render(screen):
     #Rendering
@@ -131,7 +92,7 @@ def make_scene():
     Function that makes the scene
     Thinking back, it might've been better to just put this in the class...
     '''
-    Scene("replay", events, held_keys, render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
+    Scene("replay", events, pre_render=pre_render, render=render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
 
 def read_replay(replay_file:pathlib.Path):
     '''Reads the replay and returns a tuple of data'''

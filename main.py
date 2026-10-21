@@ -68,6 +68,8 @@ while Flags.running:
         if i.time_passed():
             i.run()
 
+    current_scene.pre_render()
+
     #Render
     current_scene.render(screen)
 

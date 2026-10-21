@@ -251,12 +251,14 @@ class Scene():
                 scene_name:str,
                 event_handler:Callable[[pygame.Event], None],
                 held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
-                render:Callable[[pygame.Surface], None] = lambda x:None,
+                pre_render:Callable[[], None] = lambda:None,
+                render:Callable[[pygame.Surface], None] = lambda x: None,
                 after_render:Callable[[],None] = lambda:None,
                 scene_init_function:Callable[[], None] = lambda:None,
                 scene_cleanup:Callable[[], None] = lambda:None) -> None:
         self.handle_event = event_handler
         self.handle_held_keys = held_key_handler
+        self.pre_render = pre_render
         self.render = render
         self.after_render = after_render
         self.scene_init_function = scene_init_function
