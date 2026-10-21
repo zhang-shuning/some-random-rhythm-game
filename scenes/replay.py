@@ -37,6 +37,7 @@ def events(event: pygame.Event):
                 unpause()
 
 def pre_render():
+    update_buffer()
     for i in replay_buffer:
         if i[1] >= Counters.ticks * TPS_CAP / replay_header["tps"]:
             if 0 <= i[2] <= 3:
