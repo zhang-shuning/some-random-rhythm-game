@@ -45,7 +45,6 @@ def pre_render():
         if len(replay_buffer) == 0:
             break
         if replay_buffer[0][0] <= Counters.scene_ticks * replay_header["tps"] / TPS_CAP:
-            print(f"time {replay_buffer[0][0]} buffer {replay_buffer[0][1]}")
             if 0 <= replay_buffer[0][1] <= 3:
                 judge_note(replay_buffer[0][1])
                 held_notes[replay_buffer[0][1]] = True
