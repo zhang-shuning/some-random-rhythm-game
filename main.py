@@ -19,7 +19,7 @@ from scenes.init_scenes import init_scenes
 init_scenes()
 
 StringFlags.cur_scene = 'level_selector'
-current_scene = None
+current_scene:Scene = scene_name_dict['level_selector']
 
 #Text declaration
 fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
@@ -37,6 +37,7 @@ ticks_to_increment = 1
 #Main loop
 while Flags.running:
     if Flags.new_scene:
+        current_scene.scene_cleanup()
         current_scene = scene_name_dict[StringFlags.cur_scene]
         current_scene.init_scene()
         Flags.new_scene = False

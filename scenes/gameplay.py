@@ -109,8 +109,10 @@ def render(screen):
 
         pygame.display.flip()
 
-def after_render():
-    pass
+def scene_cleanup():
+    Counters.reset()
+    for i in note_list:
+        i.clear()
 
 def scene_init():
     score_text.draw()
@@ -124,7 +126,7 @@ def scene_init():
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
 def make_scene():
-    Scene("gameplay", events, held_keys, render, after_render, scene_init)
+    Scene("gameplay", events, held_keys, render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
 
 def stop_assets():
     score_text.stop_draw()
@@ -150,6 +152,6 @@ def make_replay_bytearray() -> bytearray:
     return byte_list
 
 def save_replay():
-    pathlib.Path("replays").touch()
+    pathlib.Path("replays").mkdir(exist_ok=True)
     with open(pathlib.Path("replays/latest.replay"), 'wb') as f:
         f.write(make_replay_bytearray())

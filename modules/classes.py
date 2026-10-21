@@ -1,5 +1,5 @@
 '''This file contains the classes used in the game!'''
-
+# pylint: disable=function-redefined
 from typing import Any, override
 from collections.abc import Callable
 from abc import ABC, abstractmethod
@@ -214,6 +214,7 @@ class WaitExtendable(Wait):
         self.func()
 
 class Button(Text):
+    '''The function runs when the user clicks on the button.'''
     def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30, origin = (0,0),
                 text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
                 rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None) -> None:
@@ -252,12 +253,14 @@ class Scene():
                 held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
                 render:Callable[[pygame.Surface], None] = lambda x:None,
                 after_render:Callable[[],None] = lambda:None,
-                scene_init_function:Callable[[], None] = lambda:None) -> None:
+                scene_init_function:Callable[[], None] = lambda:None,
+                scene_cleanup:Callable[[], None] = lambda:None) -> None:
         self.handle_event = event_handler
         self.handle_held_keys = held_key_handler
         self.render = render
         self.after_render = after_render
         self.scene_init_function = scene_init_function
+        self.scene_cleanup = scene_cleanup
         scene_name_dict[scene_name] = self
 
     def init_scene(self):

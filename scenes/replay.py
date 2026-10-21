@@ -99,9 +99,6 @@ def render(screen):
 
         pygame.display.flip()
 
-def after_render():
-    pass
-
 def scene_init():
     score_text.draw()
     acc_text.draw()
@@ -113,12 +110,17 @@ def scene_init():
     for i in hit_lights:
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
+def scene_cleanup():
+    Counters.reset()
+    for i in note_list:
+        i.clear()
+
 def make_scene():
     '''
     Function that makes the scene
     Thinking back, it might've been better to just put this in the class...
     '''
-    Scene("replay", event_handler=events, held_key_handler=held_keys,render=render,scene_init_function=scene_init)
+    Scene("replay", events, held_keys, render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
 
 def read_replay(replay_file:pathlib.Path):
     '''Reads the replay and returns a tuple of data'''
