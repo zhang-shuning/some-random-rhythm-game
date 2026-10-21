@@ -12,7 +12,10 @@ from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Sce
 from modules.constants import *
 from modules.shared_variables import *
 
-REPLAY_BUFFER_AMOUNT = 128
+REPLAY_BUFFER_AMOUNT = 8
+replay_header = {}
+replay_buffer = []
+replay_remaining_inputs = []
 
 def events(event: pygame.Event):
     if event.type == pygame.QUIT:
@@ -119,6 +122,9 @@ def scene_cleanup():
     Counters.reset()
     for i in note_list:
         i.clear()
+    replay_header.clear()
+    replay_header.clear()
+    replay_remaining_inputs.clear()
 
 def make_scene():
     '''
@@ -133,8 +139,9 @@ def read_replay(replay_file:pathlib.Path):
         f.seek(6)
         header = f.read(9)
         header_info = struct.unpack(">bii", header)
-        input_list = []
-        input_dict = {"version":header_info[0], "fps":header_info[1], 'tps':header_info[2], 'inputs':input_list}
+        replay_header["version"] = header_info[0]
+        replay_header["fps"] = header_info[1]
+        replay_header['inputs'] = header_info[2]
         if header_info[0] == 1:
             print("version 1")
             data = f.read() #It's better to read in chunks, but effort...
@@ -144,9 +151,9 @@ def read_replay(replay_file:pathlib.Path):
             for i in range(len(data)//5):
                 print(data[i*5:i*5+5])
                 cur_input = struct.unpack(">ib", data[i*5:i*5+5])
-                input_list.append((cur_input[0], cur_input[1]))
-            return input_dict
+                replay_remaining_inputs.append((cur_input[0], cur_input[1]))
 
-def play_replay(input_dict):
-    for i in input_dict['inputs']:
-        
+def update_buffer():
+    for _ in range(REPLAY_BUFFER_AMOUNT-len(replay_buffer)):
+        if len(replay_remaining_inputs) != 0:
+            replay_buffer.append(replay_remaining_inputs[0])
