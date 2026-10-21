@@ -86,6 +86,7 @@ while Flags.running:
     #Next tick
     if not Flags.is_paused:
         Counters.game_ticks+=1
+        Counters.scene_ticks += 1
     Counters.ticks+=1
 
     clock.tick(TPS_CAP)

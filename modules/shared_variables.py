@@ -42,12 +42,12 @@ class Flags():
 
 class Counters():
     '''Stores all the counters'''
-
+    ticks = 0
     @classmethod
     def reset(cls):
-        '''Reset values for counters'''
+        '''Reset values for temporary counters'''
+        cls.scene_ticks = 0
         cls.game_ticks = 0
-        cls.ticks = 0
         cls.score = 0
         cls.combo = 0
         cls.acc = 0.0

@@ -12,10 +12,12 @@ from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Sce
 from modules.constants import *
 from modules.shared_variables import *
 
+#The replay is in the form (time, note pos)
+#0-3 for note lane 1-4, 
 REPLAY_BUFFER_AMOUNT = 8
 replay_header = {}
 replay_buffer = deque(maxlen=8)
-replay_remaining_inputs = []
+replay_remaining_inputs = deque()
 
 def events(event: pygame.Event):
     if event.type == pygame.QUIT:
@@ -37,15 +39,21 @@ def events(event: pygame.Event):
                 unpause()
 
 def pre_render():
+    '''Handles the playing back of the replay'''
     update_buffer()
-    for i in replay_buffer:
-        if i[1] >= Counters.ticks * TPS_CAP / replay_header["tps"]:
-            if 0 <= i[2] <= 3:
-                judge_note(i[2])
-                held_notes[i[2]] = True
-            elif 4 <= i[2] <= 7:
-                judge_ln_release(i[2]-4)
-                held_notes[i[2]-4] = False
+    while 1:
+        if len(replay_buffer) == 0:
+            break
+        if replay_buffer[0][0] <= Counters.scene_ticks * replay_header["tps"] / TPS_CAP:
+            print(f"time {replay_buffer[0][0]} buffer {replay_buffer[0][1]}")
+            if 0 <= replay_buffer[0][1] <= 3:
+                judge_note(replay_buffer[0][1])
+                held_notes[replay_buffer[0][1]] = True
+                replay_buffer.popleft()
+            elif 4 <= replay_buffer[0][1] <= 7:
+                judge_ln_release(replay_buffer[0][1]-4)
+                held_notes[replay_buffer[0][1]-4] = False
+                replay_buffer.popleft()
         else:
             break
 
@@ -92,13 +100,13 @@ def scene_init():
     Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
     for i in hit_lights:
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+    read_replay(pathlib.Path("replays/latest.replay"))
 
 def scene_cleanup():
-    Counters.reset()
     for i in note_list:
         i.clear()
     replay_header.clear()
-    replay_header.clear()
+    replay_buffer.clear()
     replay_remaining_inputs.clear()
     for i in range(4):
         held_notes[i] = False
@@ -120,13 +128,11 @@ def read_replay(replay_file:pathlib.Path):
         replay_header["fps"] = header_info[1]
         replay_header['tps'] = header_info[2]
         if header_info[0] == 1:
-            print("version 1")
             data = f.read() #It's better to read in chunks, but effort...
             if len(data) % 5 != 0:
                 print("Something went wong with the replay")
-                return ()
+                return
             for i in range(len(data)//5):
-                print(data[i*5:i*5+5])
                 cur_input = struct.unpack(">ib", data[i*5:i*5+5])
                 replay_remaining_inputs.append((cur_input[0], cur_input[1]))
 
@@ -134,3 +140,4 @@ def update_buffer():
     for _ in range(REPLAY_BUFFER_AMOUNT-len(replay_buffer)):
         if len(replay_remaining_inputs) != 0:
             replay_buffer.append(replay_remaining_inputs[0])
+            replay_remaining_inputs.popleft()

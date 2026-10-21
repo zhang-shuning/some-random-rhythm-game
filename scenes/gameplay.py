@@ -26,21 +26,21 @@ def events(event: pygame.Event):
             judge_note(0)
             keypress.play()
             held_notes[0] = True
-            input_array.append((Counters.ticks, 0))
+            input_array.append((Counters.scene_ticks, 0))
         elif event.key == pygame.K_f:
             judge_note(1)
             keypress.play()
             held_notes[1] = True
-            input_array.append((Counters.ticks, 1))
+            input_array.append((Counters.scene_ticks, 1))
         elif event.key == pygame.K_j:
             judge_note(2)
             keypress.play()
             held_notes[2] = True
-            input_array.append((Counters.ticks, 2))
+            input_array.append((Counters.scene_ticks, 2))
         elif event.key == pygame.K_k:
             judge_note(3)
             keypress.play()
-            input_array.append((Counters.ticks, 3))
+            input_array.append((Counters.scene_ticks, 3))
             held_notes[3] = True
         elif event.key == pygame.K_z:
             save_replay()
@@ -48,19 +48,19 @@ def events(event: pygame.Event):
         if event.key == pygame.K_d:
             judge_ln_release(0)
             held_notes[0] = False
-            input_array.append((Counters.ticks, 4))
+            input_array.append((Counters.scene_ticks, 4))
         elif event.key == pygame.K_f:
             judge_ln_release(1)
             held_notes[1] = False
-            input_array.append((Counters.ticks, 5))
+            input_array.append((Counters.scene_ticks, 5))
         elif event.key == pygame.K_j:
             judge_ln_release(2)
             held_notes[2] = False
-            input_array.append((Counters.ticks, 6))
+            input_array.append((Counters.scene_ticks, 6))
         elif event.key == pygame.K_k:
             judge_ln_release(3)
             held_notes[3] = False
-            input_array.append((Counters.ticks, 7))
+            input_array.append((Counters.scene_ticks, 7))
         if event.key == pygame.K_1:
             if not Flags.is_paused:
                 pause()
@@ -110,7 +110,6 @@ def render(screen):
         pygame.display.flip()
 
 def scene_cleanup():
-    Counters.reset()
     for i in note_list:
         i.clear()
     for i in range(4):
@@ -128,7 +127,7 @@ def scene_init():
         i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
 
 def make_scene():
-    Scene("gameplay", events, held_keys, render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
+    Scene("gameplay", events, held_keys, render=render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
 
 def stop_assets():
     score_text.stop_draw()

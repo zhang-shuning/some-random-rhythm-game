@@ -268,4 +268,5 @@ class Scene():
     def init_scene(self):
         '''Removes objects from the previous scene, and initiaizes the current one'''
         clear_dynamic_lists()
+        Counters.reset()
         self.scene_init_function()
