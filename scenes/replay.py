@@ -1,4 +1,7 @@
+'''The scene of replays'''
+
 import struct
+import enum
 
 import pygame
 import pathlib
@@ -8,6 +11,8 @@ from modules.scripts import handle_fblits
 from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene, Button
 from modules.constants import *
 from modules.shared_variables import *
+
+REPLAY_BUFFER_AMOUNT = 128
 
 def events(event: pygame.Event):
     if event.type == pygame.QUIT:
@@ -129,6 +134,7 @@ def read_replay(replay_file:pathlib.Path):
         header = f.read(9)
         header_info = struct.unpack(">bii", header)
         input_list = []
+        input_dict = {"version":header_info[0], "fps":header_info[1], 'tps':header_info[2], 'inputs':input_list}
         if header_info[0] == 1:
             print("version 1")
             data = f.read() #It's better to read in chunks, but effort...
@@ -139,5 +145,8 @@ def read_replay(replay_file:pathlib.Path):
                 print(data[i*5:i*5+5])
                 cur_input = struct.unpack(">ib", data[i*5:i*5+5])
                 input_list.append((cur_input[0], cur_input[1]))
-            print(input_list)
+            return input_dict
 
+def play_replay(input_dict):
+    for i in input_dict['inputs']:
+        
