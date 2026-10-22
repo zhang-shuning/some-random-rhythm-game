@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import hashlib
 import pathlib
+import struct
 
 import pygame
 
@@ -39,7 +40,7 @@ class Map():
     difficulty_name:str
     bpm:int
 
-note_timing_list = []
+note_timing_list = [] # (LN/Normal, pos, time start, (time end))
 
 def run_command(command:str):
     args = command.split()
@@ -92,8 +93,49 @@ def make_scene():
     Scene("map_maker", event_handler=event_handler,
             render=render, scene_init_function=scene_init)
 
+def str_fits_in_u_short(n:str):
+    if len(n.format("utf-8")) > 2**16-1:
+        return True
+    return False
+
 def save_map():
+    #Ensure all strings don't go over the max length for u16
+    if not str_fits_in_u_short(Map.song_name):
+        response.update_and_draw_text("The song name is too long (max 65535)")
+        return
+    if not str_fits_in_u_short(Map.artist_name):
+        response.update_and_draw_text("The artist name is too long (max 65535)")
+        return
+    if not str_fits_in_u_short(Map.difficulty_name):
+        response.update_and_draw_text("The difficulty name is too long (max 65535)")
+        return
+    
     pathlib.Path("maps").mkdir(exist_ok=True)
-    file_name = f"{Map.artist_name} - {Map.song_name} {hashlib.md5((Map.artist_name+Map.song_name+Map.difficulty_name).encode('utf-8'), usedforsecurity=False)}.rgmap"
+    file_name = f"{Map.artist_name} - {Map.song_name} ({Map.difficulty_name}).rgmap"
     file_path = pathlib.Path("maps") / file_name
-    bytes=bytearray(b"RGMap\032\n")
+    byte_list = bytearray(b"RGMap\032\n")
+
+    #Version number
+    byte_list += struct.pack(">b", 1)
+
+    #Lengths for strings
+    byte_list += struct.pack(">h", len(Map.song_name.encode("utf-8")))
+    byte_list += struct.pack(">h", len(Map.artist_name.encode("utf-8")))
+    byte_list += struct.pack(">h", len(Map.difficulty_name.encode("utf-8")))
+
+    #Strings
+    byte_list += Map.song_name.encode("utf-8")
+    byte_list += Map.artist_name.encode("utf-8")
+    byte_list += Map.difficulty_name.encode("utf-8")
+
+    #Adds a checksum
+    byte_list += hashlib.md5((Map.artist_name+Map.song_name+Map.difficulty_name).encode("utf-8")).digest()
+
+    for i in note_timing_list:
+        if i[0] == 1: # long note
+            byte_list += struct.pack(">b", 128 + i[1])
+            byte_list += struct.pack(">d", i[2])
+            byte_list += struct.pack(">d", i[3])
+        else:
+            byte_list += struct.pack(">b", i[1])
+            byte_list += struct.pack(">d", i[2])
