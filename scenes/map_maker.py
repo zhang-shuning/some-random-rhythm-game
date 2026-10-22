@@ -39,10 +39,14 @@ class Map():
     artist_name:str
     difficulty_name:str
     bpm:int
+    saved:bool = False
+
+current_map = None
 
 note_timing_list = [] # (LN/Normal, pos, time start, (time end))
 
 def run_command(command:str):
+    global current_map
     args = command.split()
     if len(args) == 0:
         return
@@ -64,6 +68,8 @@ def run_command(command:str):
             response.update_and_draw_text("something went wrong with the command")
     elif cmd == 'save':
         note_timing_list.sort(key=lambda x:x[1])
+    elif cmd == 'exit':
+
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:

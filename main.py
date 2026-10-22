@@ -18,75 +18,84 @@ load_images()
 from scenes.init_scenes import init_scenes
 init_scenes()
 
-StringFlags.cur_scene = 'level_selector'
-current_scene:Scene = scene_name_dict['level_selector']
+class GameController():
+    def __init__(self) -> None:
+        self.cur_scene = LevelSelectScene()
 
-#Text declaration
-fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
+        self.running = True
+        self.new_scene = True
+        self.ticks = 0
 
-def fps_wrapper():
-    fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
-fps_text.draw()
-fps_update = Wait(.1, fps_wrapper, repeats=True, is_global=True)
+        #Text declaration
+        self.fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 
-#This system checks if a note is out sync with the actual time
-expected_time = time.time()
-cur_time = time.time()
-ticks_to_increment = 1
+        def fps_wrapper():
+            self.fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
+        self.fps_text.draw()
+        Wait(.1, fps_wrapper, repeats=True, is_global=True)
 
-#Main loop
-while Flags.running:
-    if Flags.new_scene:
-        current_scene.scene_cleanup()
-        current_scene = scene_name_dict[StringFlags.cur_scene]
-        current_scene.init_scene()
-        Flags.new_scene = False
+        #This system checks if a note is out sync with the actual time
+        self.expected_time = time.time()
+        self.cur_time = time.time()
+        self.ticks_to_increment = 1
 
-    fps_text.draw()
+        #Global lists
+        self.images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
+        self.global_delta_time_list = []
+        self.scene_name_dict = {}
 
-    assert isinstance(current_scene, Scene)
-    #Get events
-    for event in pygame.event.get():
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            #Button check
-            for i in rect_list:
-                if i[0].collidepoint(event.pos):
-                    i[1]()
+    def run(self):
+        #Main loop
+        while self.running:
+            if self.new_scene:
+                self.cur_scene.scene_cleanup()
+                self.cur_scene = scene_name_dict[StringFlags.cur_scene]
+                self.cur_scene.init_scene()
+                self.new_scene = False
 
-        current_scene.handle_event(event)
+            self.fps_text.draw()
 
-    #Held keys
-    keys = pygame.key.get_pressed()
-    current_scene.handle_held_keys(keys)
+        assert isinstance(self.cur_scene, Scene)
+        #Get events
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                #Button check
+                for i in rect_list:
+                    if i[0].collidepoint(event.pos):
+                        i[1]()
 
-    #Get delta time events
-    for i in delta_time_list:
-        if i.time_passed():
-            i.run()
+            self.cur_scene.handle_event(event)
 
-    for i in global_delta_time_list:
-        if i.time_passed():
-            i.run()
+        #Held keys
+        keys = pygame.key.get_pressed()
+        self.cur_scene.handle_held_keys(keys)
 
-    current_scene.pre_render()
+        #Get delta time events
+        for i in delta_time_list:
+            if i.time_passed():
+                i.run()
 
-    #Render
-    current_scene.render(screen)
+        for i in global_delta_time_list:
+            if i.time_passed():
+                i.run()
 
-    #If time is too off the expected time, go multiple ticks instead
-    expected_time += S_PER_TICK
-    cur_time = time.time()
+        self.cur_scene.pre_render()
 
-    #Check frame drops
-    if cur_time > expected_time:
-        #Calculate how many ticks the time has gone up by
-        ticks_to_increment = int((cur_time-expected_time) / S_PER_TICK)
-        expected_time += ticks_to_increment*S_PER_TICK
+        #Render
+        self.cur_scene.render(screen)
 
-    #Next tick
-    if not Flags.is_paused:
-        Counters.game_ticks+=1
-        Counters.scene_ticks += 1
-    Counters.ticks+=1
+        #If time is too off the expected time, go multiple ticks instead
+        self.expected_time += S_PER_TICK
+        cur_time = time.time()
 
-    clock.tick(TPS_CAP)
+        #Check frame drops
+        if cur_time > self.expected_time:
+            #Calculate how many ticks the time has gone up by
+            ticks_to_increment = int((cur_time-self.expected_time) / S_PER_TICK)
+            self.expected_time += ticks_to_increment*S_PER_TICK
+
+        #Next tick
+        self.cur_scene.tick()
+        Counters.ticks+=1
+
+        clock.tick(TPS_CAP)

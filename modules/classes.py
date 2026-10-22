@@ -4,11 +4,15 @@ from typing import Any, override
 from collections.abc import Callable
 from abc import ABC, abstractmethod
 import logging
+from typing import TYPE_CHECKING
+
 import pygame
 
-from modules.shared_variables import *
 from modules.constants import *
-from modules.scripts import clear_dynamic_lists
+
+if TYPE_CHECKING:
+    from main import GameController
+    from pygame import Rect
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -247,26 +251,32 @@ class Button(Text):
 
 class Scene():
     '''All scenes must have this class'''
-    def __init__(self,
-                scene_name:str,
-                event_handler:Callable[[pygame.Event], None],
-                held_key_handler:Callable[[pygame.key.ScancodeWrapper], None] = lambda x : None,
-                pre_render:Callable[[], None] = lambda:None,
-                render:Callable[[pygame.Surface], None] = lambda x: None,
-                after_render:Callable[[],None] = lambda:None,
-                scene_init_function:Callable[[], None] = lambda:None,
-                scene_cleanup:Callable[[], None] = lambda:None) -> None:
-        self.handle_event = event_handler
-        self.handle_held_keys = held_key_handler
-        self.pre_render = pre_render
-        self.render = render
-        self.after_render = after_render
-        self.scene_init_function = scene_init_function
-        self.scene_cleanup = scene_cleanup
-        scene_name_dict[scene_name] = self
+    def __init__(self, game:GameController) -> None:
 
-    def init_scene(self):
-        '''Removes objects from the previous scene, and initiaizes the current one'''
-        clear_dynamic_lists()
-        Counters.reset()
-        self.scene_init_function()
+        self.scene_ticks = 0
+
+        #Setup/internal buffers
+        self.surface_dict = {} #The surface dict will store drawn lists
+        self.drawn_list = [] # [[surface, pos, priority]]
+        self.fblits_list = [] # list for fblits
+        self.destroy_list = [] # List of object to be destroyed at end of frame
+        self.rect_list:list[tuple[Rect, Callable[[]]]] = [] #List of buttons
+        self.delta_time_list:list[Wait] = [] #List of delta time objects
+
+    def handle_event(self):
+        pass
+
+    def handle_held_keys(self):
+        pass
+
+    def pre_render(self):
+        pass
+
+    def render(self):
+        pass
+
+    def after_render(self):
+        pass
+
+    def tick(self):
+        self.scene_ticks += 1
