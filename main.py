@@ -42,9 +42,11 @@ class GameController():
         #Global lists
         self.images_dict = {} #The images dict stores all textures in the game; not dynamically loaded for now
         self.global_delta_time_list = []
+        self.global_draw_list = []
         self.scene_name_dict = {}
 
     def run(self):
+        '''Runs the main loop of the game'''
         #Main loop
         while self.running:
             if self.new_scene:

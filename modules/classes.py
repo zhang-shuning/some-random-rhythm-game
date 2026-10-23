@@ -29,7 +29,8 @@ class AbstractDrawable(ABC):
 
 class DrawnEntity(AbstractDrawable):
     '''This is the base class for all entities that get drawn on screen.'''
-    def __init__(self, priority:int, pos:tuple[int,int]|list[int], origin = (0,0), center=False) -> None:
+    def __init__(self, game:GameController, priority:int, pos:tuple[int,int]|list[int], scene:Scene|None = None, origin = (0,0), center=False) -> None:
+        '''If scene is none, then it it is global'''
         self.orig_pos = pos
         self.pos = pos
         self.priority = priority
@@ -39,6 +40,10 @@ class DrawnEntity(AbstractDrawable):
         self.origin = origin
         if center:
             self.origin = (.5,.5)
+        if scene is None:
+            self.drawn_list = game.global_draw_list
+        else:
+            self.drawn_list = scene.drawn_list
         self.setup()
 
     def setup(self, entity_index=0) -> None:
@@ -51,8 +56,8 @@ class DrawnEntity(AbstractDrawable):
     @override
     def stop_draw(self) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
-        if self.to_send in drawn_list:
-            drawn_list.remove(self.to_send)
+        if self.to_send in self.drawn_list:
+            self.drawn_list.remove(self.to_send)
         self.to_send = [self.entities, self.pos, self.priority]
         self.is_drawn = False
 
@@ -60,7 +65,7 @@ class DrawnEntity(AbstractDrawable):
     def draw(self) -> None:
         '''Adds the entity to the draw list'''
         self.stop_draw()
-        drawn_list.append(self.to_send)
+        self.drawn_list.append(self.to_send)
         self.is_drawn = True
 
     def update_priority(self, priority):
@@ -76,35 +81,39 @@ class DrawnEntity(AbstractDrawable):
 
 class DrawbleRect(AbstractDrawable):
     '''No origin because I don't feel like it'''
-    def __init__(self, priority, pos, size:tuple[int,int]|list[int], color) -> None:
+    def __init__(self, game, priority, pos, size:tuple[int,int]|list[int], color, scene:Scene|None = None) -> None:
         self.pos=pos
         self.priority=priority
         self.rect = pygame.surface.Surface(size=size)
         self.rect.fill(color=color)
         self.to_send = [[self.rect], pos, priority]
+        if scene is None:
+            self.drawn_list = game.global_draw_list
+        else:
+            self.drawn_list = scene.drawn_list
 
     @override
     def stop_draw(self) -> None:
         '''Updates the to_send list, removes it if it doesn't already exist in draw list'''
-        if self.to_send in drawn_list:
-            drawn_list.remove(self.to_send)
+        if self.to_send in self.drawn_list:
+            self.drawn_list.remove(self.to_send)
         self.to_send = [[self.rect], self.pos, self.priority]
 
     @override
     def draw(self) -> None:
         '''Adds the entity to the draw list'''
         self.stop_draw()
-        drawn_list.append(self.to_send)
+        self.drawn_list.append(self.to_send)
 
 class Text(DrawnEntity):
     '''This class is for text on screen'''
-    def __init__(self, text:str, pos:tuple[int,int], priority:int, font_size:int = 30, origin = (0,0),
-                  text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
+    def __init__(self, game:GameController, text:str, pos:tuple[int,int], priority:int, font_size:int = 30, origin = (0,0),
+                  text_color:tuple[int,int,int] = (255, 255, 255), scene:Scene|None = None, bg_color:tuple[int,int,int]|None = None) -> None:
         self.text = text
         self.font_size = font_size
         self.text_color = text_color
         self.bg_color = bg_color
-        super().__init__(priority, pos, origin=origin)
+        super().__init__(game, priority, pos, scene, origin=origin)
 
     @override
     def setup(self, entity_index=0):
@@ -141,37 +150,41 @@ class Text(DrawnEntity):
 
 class Sprite(DrawnEntity):
     '''Class with sprites'''
-    def __init__(self, priority, pos, image_name, origin = (0,0)) -> None:
-        self.image = images_dict.get(image_name)
+    def __init__(self, game, priority, pos, image_name, origin = (0,0), scene:Scene|None=None) -> None:
+        self.image = game.images_dict.get(image_name)
         if self.image is None:
             _logger.fatal("Texture %s not found!\nExiting...", image_name)
-            Flags.running = False
+            game.running = False
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
-        super().__init__(priority, pos, origin=origin)
+        super().__init__(game, priority, pos, origin=origin, scene=scene)
 
     @override
-    def setup(self) -> None:
+    def setup(self, entity_index=0) -> None:
         self.entities.append(self.image)
 
 class Wait():
     '''Class that is used to run code in delta ticks'''
-    def __init__(self, delta, func:Callable, *args,
-                repeats=False, use_game_tick=False, is_global = False) -> None:
-        if use_game_tick:
-            self.tick = lambda:Counters.game_ticks
+    def __init__(self, game:GameController, delta, func:Callable, *args,
+                repeats=False, scene:Scene|None = None) -> None:
+        '''
+        If scene is None, then it uses the global delta time list
+        Otherwise, use the scene ticks
+        '''
+        if scene is not None:
+            self.tick = lambda:scene.scene_ticks
         else:
-            self.tick = lambda:Counters.ticks
+            self.tick = lambda:game.ticks
         self.repeats = repeats
         self.needed_time = self.tick() + delta*TPS_CAP
         self.func = func
         self.args = args
         if repeats:
             self.delta = delta
-        if is_global:
-            global_delta_time_list.append(self)
+        if scene is None:
+            self.delta_list = game.global_delta_time_list
         else:
-            delta_time_list.append(self)
+            self.delta_list = scene.delta_time_list
 
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
@@ -186,7 +199,7 @@ class Wait():
         if self.repeats:
             self.needed_time+=self.delta*TPS_CAP
         else:
-            delta_time_list.remove(self)
+            self.delta_list.remove(self)
             del(self)
 
 class WaitExtendable(Wait):
@@ -219,20 +232,21 @@ class WaitExtendable(Wait):
 
 class Button(Text):
     '''The function runs when the user clicks on the button.'''
-    def __init__(self, text: str, pos: tuple[int, int], priority: int, font_size: int = 30, origin = (0,0),
+    def __init__(self, game, text: str, pos: tuple[int, int], priority: int, scene:Scene, font_size: int = 30, origin = (0,0),
                 text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
-                rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None) -> None:
+                rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None, ) -> None:
         #Rect is a seperate rect around the text
         self.rect_color = rect_color
         self.rect_size = rect_size
         self.on_press = on_press
         self.cur_rect_and_func = None
-        super().__init__(text, pos, priority, font_size, origin, text_color, bg_color)
+        self.rect_list = scene.rect_list
+        super().__init__(game, text, pos, priority, font_size, origin, text_color, scene, bg_color)
     def update_rect(self):
-        if self.cur_rect_and_func in rect_list:
-            rect_list.remove(self.cur_rect_and_func)
+        if self.cur_rect_and_func in self.rect_list:
+           self.rect_list.remove(self.cur_rect_and_func)
         self.cur_rect_and_func = (pygame.Rect(self.pos, self.rect_size), self.on_press)
-        rect_list.append(self.cur_rect_and_func)
+        self.rect_list.append(self.cur_rect_and_func)
     @override
     def setup(self, entity_index=0):
         surface = pygame.Surface(size=self.rect_size)
@@ -245,8 +259,8 @@ class Button(Text):
         self.update_rect()
     @override
     def stop_draw(self) -> None:
-        if self.cur_rect_and_func in rect_list:
-            rect_list.remove(self.cur_rect_and_func)
+        if self.cur_rect_and_func in self.rect_list:
+            self.rect_list.remove(self.cur_rect_and_func)
         return super().stop_draw()
 
 class Scene():
@@ -263,16 +277,16 @@ class Scene():
         self.rect_list:list[tuple[Rect, Callable[[]]]] = [] #List of buttons
         self.delta_time_list:list[Wait] = [] #List of delta time objects
 
-    def handle_event(self):
+    def handle_event(self, event):
         pass
 
-    def handle_held_keys(self):
+    def handle_held_keys(self, keys):
         pass
 
     def pre_render(self):
         pass
 
-    def render(self):
+    def render(self, screen):
         pass
 
     def after_render(self):
