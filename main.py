@@ -24,6 +24,8 @@ class GameController():
     def __init__(self) -> None:
         self.cur_scene = LevelSelectScene()
 
+        #Initialization stuff
+        self.next_scene_str = ""
         self.running = True
         self.new_scene = True
         self.ticks = 0
@@ -34,7 +36,7 @@ class GameController():
         def fps_wrapper():
             self.fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
         self.fps_text.draw()
-        Wait(.1, fps_wrapper, repeats=True, is_global=True)
+        Wait(self, .1, fps_wrapper, repeats=True, is_global=True)
 
         #This system checks if a note is out sync with the actual time
         self.expected_time = time.time()
@@ -54,7 +56,7 @@ class GameController():
         while self.running:
             if self.new_scene:
                 self.cur_scene.scene_cleanup()
-                self.cur_scene = scene_name_dict[StringFlags.cur_scene]
+                self.cur_scene = self.scene_name_dict[self.cur_scene]
                 self.cur_scene.init_scene()
                 self.new_scene = False
 
@@ -65,7 +67,7 @@ class GameController():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 #Button check
-                for i in rect_list:
+                for i in self.button_list:
                     if i[0].collidepoint(event.pos):
                         i[1]()
 
@@ -76,11 +78,7 @@ class GameController():
         self.cur_scene.handle_held_keys(keys)
 
         #Get delta time events
-        for i in delta_time_list:
-            if i.time_passed():
-                i.run()
-
-        for i in global_delta_time_list:
+        for i in self.global_delta_time_list:
             if i.time_passed():
                 i.run()
 
@@ -101,6 +99,6 @@ class GameController():
 
         #Next tick
         self.cur_scene.tick()
-        Counters.ticks+=1
+        self.ticks+=1
 
         clock.tick(TPS_CAP)

@@ -6,7 +6,7 @@ from typing import override, TYPE_CHECKING
 
 import pygame
 
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene, Button
+from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, PausableScene, Button
 from modules.constants import *
 from modules.shared_variables import *
 
@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 class GameplayScriptManager():
     def __init__(self, game:GameController) -> None:
+        self.scene = game.cur_scene
+        if not isinstance(self.scene, PausableScene):
+            raise ValueError("Something went wrong, GameplayScriptManager attempted to be initialized with a non-pausable scene.")
         #init
         self.game = game
         self.jth = JudgementTextHandler(self)
@@ -66,25 +69,21 @@ class GameplayScriptManager():
 
     #Button function declaration
     def pause(self):
-        Flags.is_paused = True
+        self.is_paused = True
         self.unpause_button.draw()
         self.restart_button.draw()
         self.exit_button.draw()
 
     def unpause(self):
-        Flags.is_paused = False
+        self.is_paused = False
         self.unpause_button.stop_draw()
         self.restart_button.stop_draw()
         self.exit_button.stop_draw()
 
     def stop_game(self):
         self.unpause()
-        Flags.new_scene = True
-        StringFlags.cur_scene = "level_selector"
-
-    def change_scene(self, scene):
-        '''Changes the scene of the gameplay script manager'''
-        self.scene = scene
+        self.game.new_scene = True
+        self.game.next_scene_str = "level_selector"
 
     def enable_hitlight(self, n):
         '''Enables the hitlight'''
@@ -103,7 +102,7 @@ class GameplayScriptManager():
             if cur_score == -1:
                 return
 
-            Flags.note_hit_or_missed = True
+            self.note_hit_or_missed = True
 
             if cur_score == 0:
                 self.jth.add_to_q(0)
@@ -120,14 +119,16 @@ class GameplayScriptManager():
             return
 
     def judge_ln_release(self, lane:int):
-        if len(note_list[lane]) == 0:
+        if len(self.note_list[lane]) == 0:
             return
 
-        note = note_list[lane][0]
+        note = self.note_list[lane][0]
         if not isinstance(note, LongNote):
             return
         #Checks if long note was being held the from before
         result = note.judge_release()
+    def calculate_acc(self) -> float:
+        return 100*(300*self.hits_300+200*self.hits_200+100*self.hits_100+50*self.hits_50)/(300*(self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0))
 
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
@@ -149,16 +150,19 @@ class JudgementTextHandler(Wait):
     #If it is, then set the time to MINIMUM_FRAME -1
     def __init__(self, g_manager:GameplayScriptManager) -> None:
         self.g_manager = g_manager
+        self.game = g_manager.game
+        self.scene = g_manager.game.cur_scene
+
         self.q = deque()
         self.to_stop_drawing = -1
         self.needed_time = -1
         self.to_draw = -1
-        self.tick = lambda:Counters.unpaused_ticks
-        global_delta_time_list.append(self)
+        self.tick = lambda:self.scene.unpaused_ticks
+        self.game.global_delta_time_list.append(self)
     def time_passed(self):
         if self.q and self.to_draw == -1:
             self.to_draw = self.q.popleft()
-            self.needed_time = Counters.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+            self.needed_time = self.scene.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
             if self.to_stop_drawing == -1:
                 return True
             return False
@@ -199,7 +203,7 @@ class JudgementTextHandler(Wait):
             self.g_manager.excellent_text.draw()
             self.to_stop_drawing = 300
         self.to_draw = -1
-        self.needed_time = Counters.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+        self.needed_time = self.scene.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
     def add_to_q(self, judgement_value):
         self.q.append(judgement_value)
 
@@ -227,7 +231,7 @@ class Note(Sprite, AbstractNote):
         self.script_manager = script_manager
         self.game = script_manager.game
         self.jth = script_manager.jth
-        self.scene = script_manager.scene
+        self.scene = script_manager.game.cur_scene
 
         self.pos = [360+200*key,0]
         self.key = key
@@ -274,21 +278,21 @@ class Note(Sprite, AbstractNote):
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed-range <= Counters.unpaused_ticks <= self.tick_needed+range:
+        if self.tick_needed-range <= self.scene.unpaused_ticks <= self.tick_needed+range:
             return True
         return False
 
     def q_destroy(self):
         '''Queues the the note to be destroyed at the end of the frame'''
-        destroy_list.append(self)
-        Flags.note_hit_or_missed = True
+        self.scene.destroy_list.append(self)
+        self.script_manager.note_hit_or_missed = True
         self.combo = 0
         self.miss_0 += 1
 
     def destroy(self):
         '''Removes itself from note and draw list'''
-        note_list[self.key-1].remove(self)
-        drawn_list.remove(self.to_send)
+        self.script_manager.note_list[self.key-1].remove(self)
+        self.scene.drawn_list.remove(self.to_send)
 
 class LongNote(AbstractNote):
     '''Will maybe implement a minimum length for LNs'''
@@ -307,7 +311,7 @@ class LongNote(AbstractNote):
         length = duration * SCROLL_SPEED
         self.key = key
         self.note_duration = duration
-        self.tick_needed_bottom = TIME_NEEDED + Counters.unpaused_ticks
+        self.tick_needed_bottom = TIME_NEEDED + self.scene.unpaused_ticks
         #Calculate how long the note is visually based off the length
         self.note_length = duration * SCROLL_SPEED
         self.bottom_note = Sprite(self.game, -7, [key_x,0], 'note')
@@ -321,7 +325,7 @@ class LongNote(AbstractNote):
         self.bottom_note.draw()
         self.top_note.draw()
         self.middle_rect.draw()
-        note_list[key-1].append(self)
+        self.script_manger.note_list[key-1].append(self)
 
     @override
     def move(self) -> None:
@@ -373,7 +377,7 @@ class LongNote(AbstractNote):
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed_bottom-range <= Counters.unpaused_ticks <= self.tick_needed_bottom+range:
+        if self.tick_needed_bottom-range <= self.scene.unpaused_ticks <= self.tick_needed_bottom+range:
             return True
         return False
 
@@ -381,13 +385,10 @@ class LongNote(AbstractNote):
         pass
 
     def q_destroy(self):
-        destroy_list.append(self)
+        self.scene.destroy_list.append(self)
 
     def destroy(self):
-        drawn_list.remove(self.bottom_note.to_send)
-        drawn_list.remove(self.top_note.to_send)
-        drawn_list.remove(self.middle_rect.to_send)
-        note_list[self.key-1].remove(self)
-
-    def calculate_acc(self) -> float:
-        return 100*(300*self.hits_300+200*self.hits_200+100*self.hits_100+50*self.hits_50)/(300*(self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0))
+        self.scene.drawn_list.remove(self.bottom_note.to_send)
+        self.scene.drawn_list.remove(self.top_note.to_send)
+        self.scene.drawn_list.remove(self.middle_rect.to_send)
+        self.script_manger.note_list[self.key-1].remove(self)

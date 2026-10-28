@@ -55,7 +55,7 @@ def run_command(command:str):
         Flags.running = False
     elif cmd == "back":
         Flags.new_scene = True
-        StringFlags.cur_scene = "main_menu"
+        self.game.next_scene_str = "main_menu"
     elif cmd == "note":
         try:
             pass

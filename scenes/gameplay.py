@@ -6,13 +6,13 @@ import pygame
 from main import GameController
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
-from modules.classes import Wait, WaitExtendable, Scene
+from modules.classes import Wait, WaitExtendable, PausableScene
 from modules.shared_variables import *
 
 if TYPE_CHECKING:
     from typing import TYPE_CHECKING
 
-class GamePlayScene(Scene):
+class GamePlayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)
@@ -32,21 +32,21 @@ class GamePlayScene(Scene):
                 self.gameplay_objects.judge_note(0)
                 self.gameplay_objects.keypress.play()
                 self.gameplay_objects.held_notes[0] = True
-                input_array.append((Counters.scene_ticks, 0))
+                input_array.append((self.unpaused_ticks, 0))
             elif event.key == pygame.K_f:
                 self.gameplay_objects.judge_note(1)
                 self.gameplay_objects.keypress.play()
                 self.gameplay_objects.held_notes[1] = True
-                input_array.append((Counters.scene_ticks, 1))
+                input_array.append((self.unpaused_ticks, 1))
             elif event.key == pygame.K_j:
                 self.gameplay_objects.judge_note(2)
                 self.gameplay_objects.keypress.play()
                 self.gameplay_objects.held_notes[2] = True
-                input_array.append((Counters.scene_ticks, 2))
+                input_array.append((self.unpaused_ticks, 2))
             elif event.key == pygame.K_k:
                 self.gameplay_objects.judge_note(3)
                 self.gameplay_objects.keypress.play()
-                input_array.append((Counters.scene_ticks, 3))
+                input_array.append((self.unpaused_ticks, 3))
                 self.gameplay_objects.held_notes[3] = True
             elif event.key == pygame.K_z:
                 save_replay()
@@ -54,29 +54,29 @@ class GamePlayScene(Scene):
             if event.key == pygame.K_d:
                 self.gameplay_objects.judge_ln_release(0)
                 self.gameplay_objects.held_notes[0] = False
-                input_array.append((Counters.scene_ticks, 4))
+                input_array.append((self.unpaused_ticks, 4))
             elif event.key == pygame.K_f:
                 self.gameplay_objects.judge_ln_release(1)
                 self.gameplay_objects.held_notes[1] = False
-                input_array.append((Counters.scene_ticks, 5))
+                input_array.append((self.unpaused_ticks, 5))
             elif event.key == pygame.K_j:
                 self.gameplay_objects.judge_ln_release(2)
                 self.gameplay_objects.held_notes[2] = False
-                input_array.append((Counters.scene_ticks, 6))
+                input_array.append((self.unpaused_ticks, 6))
             elif event.key == pygame.K_k:
                 self.gameplay_objects.judge_ln_release(3)
                 self.gameplay_objects.held_notes[3] = False
-                input_array.append((Counters.scene_ticks, 7))
+                input_array.append((self.unpaused_ticks, 7))
             if event.key == pygame.K_1:
-                if not Flags.is_paused:
+                if not self.is_paused:
                     self.gameplay_objects.pause()
                 else:
                     self.gameplay_objects.unpause()
 
     def held_keys(self, keys):
         #Only check if the frame is being drawn for hitlights because hitlights are rendered
-        if Counters.unpaused_ticks % FRAME_FREQUENCY == 0:
-            if not Flags.is_paused:
+        if self.unpaused_ticks % FRAME_FREQUENCY == 0:
+            if not self.is_paused:
                 if keys[pygame.K_d]:
                     self.gameplay_objects.enable_hitlight(0)
                 if keys[pygame.K_f]:
@@ -87,24 +87,24 @@ class GamePlayScene(Scene):
                     self.gameplay_objects.enable_hitlight(3)
 
     def render(self, screen):
-        #Rendering
-        if Counters.unpaused_ticks % FRAME_FREQUENCY == 0 or (Flags.is_paused and Counters.ticks % FRAME_FREQUENCY == 0):
+        #Ensures that it still runs even if the game is paused
+        if self.unpaused_ticks % FRAME_FREQUENCY == 0 or (self.is_paused and self.game.ticks % FRAME_FREQUENCY == 0):
             #Clear screen
             screen.fill((100,0,0))
             #Update score
-            if Flags.score_updated:
-                self.gameplay_objects.score_text.update_and_draw_text(f"{Counters.score}")
-                Flags.score_updated = False
-            if Flags.note_hit_or_missed:
-                self.gameplay_objects.combo_text.update_and_draw_text(f"{Counters.combo}")
-                self.acc = calculate_acc()
-                self.gameplay_objects.acc_text.update_and_draw_text(f"{Counters.acc:.2f}%")
-                Flags.note_hit_or_missed = False
+            if self.gameplay_objects.score_updated:
+                self.gameplay_objects.score_text.update_and_draw_text(f"{self.gameplay_objects.score}")
+                self.gameplay_objects.score_updated = False
+            if self.gameplay_objects.note_hit_or_missed:
+                self.gameplay_objects.combo_text.update_and_draw_text(f"{self.gameplay_objects.combo}")
+                self.acc = self.gameplay_objects.calculate_acc()
+                self.gameplay_objects.acc_text.update_and_draw_text(f"{self.gameplay_objects.acc:.2f}%")
+                self.gameplay_objects.note_hit_or_missed = False
             #Draw screen
             handle_fblits()
             screen.fblits(fblits_list)
             #Move notes
-            if not Flags.is_paused:
+            if not self.is_paused:
                 for note_row in note_list:
                     for note in note_row:
                         note.move()

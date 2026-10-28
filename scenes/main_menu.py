@@ -6,7 +6,7 @@ pygame.font.init()
 
 def goto_level_select():
     Flags.new_scene = True
-    StringFlags.cur_scene = "level_selector"
+    self.game.next_scene_str = "level_selector"
 
 def exit_game():
     Flags.running = False

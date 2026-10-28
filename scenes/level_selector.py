@@ -24,13 +24,13 @@ def run_command(command:str):
         Flags.running = False
     elif command == "back":
         Flags.new_scene = True
-        StringFlags.cur_scene = "main_menu"
+        self.game.next_scene_str = "main_menu"
     elif command == "1":
         Flags.new_scene = True
-        StringFlags.cur_scene = "gameplay"
+        self.game.next_scene_str = "gameplay"
     elif command == '2':
         Flags.new_scene = True
-        StringFlags.cur_scene = "replay"
+        self.game.next_scene_str = "replay"
 
 def event_handler(event:pygame.Event):
     if event.type == pygame.KEYDOWN:

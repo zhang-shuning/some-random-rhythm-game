@@ -167,25 +167,25 @@ class Sprite(DrawnEntity):
 class Wait():
     '''Class that is used to run code in delta ticks'''
     def __init__(self, game:GameController, delta, func:Callable, *args,
-                repeats=False, scene:Scene|None = None) -> None:
+                repeats=False, is_global = False) -> None:
         '''
         If scene is None, then it uses the global delta time list
         Otherwise, use the scene ticks
         '''
-        if scene is not None:
+
+        if not is_global:
+            scene = game.cur_scene
             self.tick = lambda:scene.scene_ticks
+            self.delta_list = scene.delta_time_list
         else:
             self.tick = lambda:game.ticks
+            self.delta_list = game.global_delta_time_list
         self.repeats = repeats
         self.needed_time = self.tick() + delta*TPS_CAP
         self.func = func
         self.args = args
         if repeats:
             self.delta = delta
-        if scene is None:
-            self.delta_list = game.global_delta_time_list
-        else:
-            self.delta_list = scene.delta_time_list
 
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
@@ -265,7 +265,14 @@ class Button(Text):
         return super().stop_draw()
 
 class Scene():
-    '''All scenes must have this class'''
+    '''
+    The base class for all scenes\n
+    In chronological order the methods are run in:\n
+    handle_event(event) is the event handler\n
+    handle_held_keys(keys) is the held key handler\n
+    pre_render()/render()/after_render() is meant for rendering
+    tick() increases the tick count
+    '''
     def __init__(self, game:GameController) -> None:
 
         self.game = game
@@ -296,3 +303,11 @@ class Scene():
 
     def tick(self):
         self.scene_ticks += 1
+
+class PausableScene(Scene):
+    '''Class for scenes that are pausable (likely just replay and gameplay for now)'''
+    def __init__(self, game:GameController) -> None:
+        self.unpaused_ticks = 0
+        self.is_paused = False
+        super().__init__(game)
+
