@@ -9,6 +9,8 @@ from modules.constants import *
 from modules.shared_variables import *
 from modules.scripts import load_images
 
+from scenes.gameplay_scripts import GameplayScriptManager
+
 #Pygame variable initialization
 screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
@@ -27,7 +29,7 @@ class GameController():
         self.ticks = 0
 
         #Text declaration
-        self.fps_text = Text("this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
+        self.fps_text = Text(self, "this is the fps", (HORIZONTAL_SIZE, 0), 100, origin=(1,0))
 
         def fps_wrapper():
             self.fps_text.update_and_draw_text(f"{clock.get_fps():.5f}")
@@ -44,6 +46,7 @@ class GameController():
         self.global_delta_time_list = []
         self.global_draw_list = []
         self.scene_name_dict = {}
+        self.button_list = []
 
     def run(self):
         '''Runs the main loop of the game'''

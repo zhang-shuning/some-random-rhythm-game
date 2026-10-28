@@ -29,8 +29,9 @@ class AbstractDrawable(ABC):
 
 class DrawnEntity(AbstractDrawable):
     '''This is the base class for all entities that get drawn on screen.'''
-    def __init__(self, game:GameController, priority:int, pos:tuple[int,int]|list[int], scene:Scene|None = None, origin = (0,0), center=False) -> None:
+    def __init__(self, game:GameController, priority:int, pos:tuple[int,int]|list[int], origin = (0,0), center=False, is_global=False) -> None:
         '''If scene is none, then it it is global'''
+        self.scene = game.cur_scene
         self.orig_pos = pos
         self.pos = pos
         self.priority = priority
@@ -40,10 +41,10 @@ class DrawnEntity(AbstractDrawable):
         self.origin = origin
         if center:
             self.origin = (.5,.5)
-        if scene is None:
+        if is_global:
             self.drawn_list = game.global_draw_list
         else:
-            self.drawn_list = scene.drawn_list
+            self.drawn_list = self.scene.drawn_list
         self.setup()
 
     def setup(self, entity_index=0) -> None:
@@ -108,12 +109,12 @@ class DrawbleRect(AbstractDrawable):
 class Text(DrawnEntity):
     '''This class is for text on screen'''
     def __init__(self, game:GameController, text:str, pos:tuple[int,int], priority:int, font_size:int = 30, origin = (0,0),
-                  text_color:tuple[int,int,int] = (255, 255, 255), scene:Scene|None = None, bg_color:tuple[int,int,int]|None = None) -> None:
+                  text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
         self.text = text
         self.font_size = font_size
         self.text_color = text_color
         self.bg_color = bg_color
-        super().__init__(game, priority, pos, scene, origin=origin)
+        super().__init__(game, priority, pos, origin=origin)
 
     @override
     def setup(self, entity_index=0):
@@ -150,14 +151,14 @@ class Text(DrawnEntity):
 
 class Sprite(DrawnEntity):
     '''Class with sprites'''
-    def __init__(self, game, priority, pos, image_name, origin = (0,0), scene:Scene|None=None) -> None:
+    def __init__(self, game, priority, pos, image_name, origin = (0,0)) -> None:
         self.image = game.images_dict.get(image_name)
         if self.image is None:
             _logger.fatal("Texture %s not found!\nExiting...", image_name)
             game.running = False
             self.image = pygame.Surface(size=(100, 100))
             self.image.fill((100, 100, 100))
-        super().__init__(game, priority, pos, origin=origin, scene=scene)
+        super().__init__(game, priority, pos, origin=origin)
 
     @override
     def setup(self, entity_index=0) -> None:
@@ -232,7 +233,7 @@ class WaitExtendable(Wait):
 
 class Button(Text):
     '''The function runs when the user clicks on the button.'''
-    def __init__(self, game, text: str, pos: tuple[int, int], priority: int, scene:Scene, font_size: int = 30, origin = (0,0),
+    def __init__(self, game:GameController, text: str, pos: tuple[int, int], priority: int, font_size: int = 30, origin = (0,0),
                 text_color: tuple[int, int, int] = (255, 255, 255), bg_color: tuple[int, int, int] | None = None,
                 rect_color = (0,0,0), rect_size = (0, 0), rect_texture = None, on_press:Callable = lambda: None, ) -> None:
         #Rect is a seperate rect around the text
@@ -240,8 +241,8 @@ class Button(Text):
         self.rect_size = rect_size
         self.on_press = on_press
         self.cur_rect_and_func = None
-        self.rect_list = scene.rect_list
-        super().__init__(game, text, pos, priority, font_size, origin, text_color, scene, bg_color)
+        self.rect_list = game.button_list
+        super().__init__(game, text, pos, priority, font_size, origin, text_color, bg_color)
     def update_rect(self):
         if self.cur_rect_and_func in self.rect_list:
            self.rect_list.remove(self.cur_rect_and_func)
@@ -267,6 +268,7 @@ class Scene():
     '''All scenes must have this class'''
     def __init__(self, game:GameController) -> None:
 
+        self.game = game
         self.scene_ticks = 0
 
         #Setup/internal buffers

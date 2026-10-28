@@ -62,7 +62,7 @@ def pre_render():
 
 def render(screen):
     #Rendering
-    if Counters.game_ticks % FRAME_FREQUENCY == 0 or (Flags.is_paused and Counters.ticks % FRAME_FREQUENCY == 0):
+    if Counters.unpaused_ticks % FRAME_FREQUENCY == 0 or (Flags.is_paused and Counters.ticks % FRAME_FREQUENCY == 0):
         #Clear screen
         screen.fill((100,0,0))
         #Update score

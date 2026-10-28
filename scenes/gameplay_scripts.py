@@ -2,7 +2,7 @@
 from random import randint
 from collections import deque
 from abc import ABC, abstractmethod
-from typing import override
+from typing import override, TYPE_CHECKING
 
 import pygame
 
@@ -10,55 +10,124 @@ from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Sce
 from modules.constants import *
 from modules.shared_variables import *
 
+if TYPE_CHECKING:
+    from main import GameController
 
+class GameplayScriptManager():
+    def __init__(self, game:GameController) -> None:
+        #init
+        self.game = game
+        self.jth = JudgementTextHandler(self)
 
-#SFX
-hit = pygame.Sound("assets/sfx/hit.wav")
-keypress = pygame.Sound("assets/sfx/keypress.wav")
-miss = pygame.Sound("assets/sfx/miss.wav")
+        #sfx
+        self.hit = pygame.Sound("assets/sfx/hit.wav")
+        self.keypress = pygame.Sound("assets/sfx/keypress.wav")
+        self.miss = pygame.Sound("assets/sfx/miss.wav")
 
-hit.set_volume(.1)
-keypress.set_volume(.2)
-miss.set_volume(.6)
+        self.hit.set_volume(.1)
+        self.keypress.set_volume(.2)
+        self.miss.set_volume(.6)
 
-#Text
-mouse_text = Text("", (HORIZONTAL_SIZE-500,0), 100)
-score_text = Text("0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
-acc_text = Text("100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
-combo_text = Text("0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
-excellent_text = Text("Excellent", JUDEMENT_TEXT_POS, 10, font_size=120, text_color=(0, 150, 255), origin=(.5,.5))
-good_text = Text("Good", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(34, 139, 34), origin=(.5,.5))
-ok_text = Text("OK", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(175, 225, 175), origin=(.5,.5))
-bad_text = Text("Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 211, 211), origin=(.5,.5))
-miss_text = Text("Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
+        self.note_list = []
 
-#Sprites
-chart = Sprite(-10, (HORIZONTAL_SIZE/2-400, 0), "chart")
-judgement_line = Sprite(-9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
+        #Score/hits
+        self.score_updated = False
+        self.note_hit_or_missed = True
+        self.score = 0
+        self.combo = 0
+        self.acc = 0.0
+        self.hits_300 = 0
+        self.hits_200 = 0
+        self.hits_100 = 0
+        self.hits_50 = 0
+        self.miss_0 = 0
 
-held_notes = [False, False, False, False]
+        #Text
+        self.mouse_text = Text(game, "", (HORIZONTAL_SIZE-500,0), 100)
+        self.score_text = Text(game, "0", (HORIZONTAL_SIZE, 25), 100, font_size=40, origin=(1,0))
+        self.acc_text = Text(game, "100.00%", (HORIZONTAL_SIZE, 60), 100, font_size=40, origin=(1,0))
+        self.combo_text = Text(game, "0", (0, VERTICAL_SIZE), 100, font_size=100, origin=(0,1))
+        self.excellent_text = Text(game, "Excellent", JUDEMENT_TEXT_POS, 10, font_size=120, text_color=(0, 150, 255), origin=(.5,.5))
+        self.good_text = Text(game, "Good", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(34, 139, 34), origin=(.5,.5))
+        self.ok_text = Text(game, "OK", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(175, 225, 175), origin=(.5,.5))
+        self.bad_text = Text(game, "Bad", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(211, 211, 211), origin=(.5,.5))
+        self.miss_text = Text(game, "Miss!", JUDEMENT_TEXT_POS, 10, font_size=150, text_color=(255, 0, 0), origin=(.5,.5))
 
-#Button function declaration
-def pause():
-    Flags.is_paused = True
-    unpause_button.draw()
-    restart_button.draw()
-    exit_button.draw()
+        #Sprites
+        self.chart = Sprite(game, -10, (HORIZONTAL_SIZE/2-400, 0), "chart")
+        self.judgement_line = Sprite(game, -9, (HORIZONTAL_SIZE/2-400, VERTICAL_SIZE-JUDGEMENT_LINE_HEIGHT), "judgement_line")
+        self.hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(game, -8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
 
-def unpause():
-    Flags.is_paused = False
-    unpause_button.stop_draw()
-    restart_button.stop_draw()
-    exit_button.stop_draw()
+        self.held_notes = [False, False, False, False]
+        #Buttons
+        self.unpause_button = Button(game, "Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=self.unpause)
+        self.restart_button = Button(game, "Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=self.unpause)
+        self.exit_button = Button(game, "Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=self.stop_game)
 
-def stop_game():
-    unpause()
-    Flags.new_scene = True
-    StringFlags.cur_scene = "level_selector"
+    #Button function declaration
+    def pause(self):
+        Flags.is_paused = True
+        self.unpause_button.draw()
+        self.restart_button.draw()
+        self.exit_button.draw()
 
-unpause_button = Button("Return to game", (960, 300), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
-restart_button = Button("Return to game", (960, 500), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=unpause)
-exit_button = Button("Exit", (960, 700), 100, origin=(.5,.5), rect_color=(128,128,128), rect_size=(200,100), on_press=stop_game)
+    def unpause(self):
+        Flags.is_paused = False
+        self.unpause_button.stop_draw()
+        self.restart_button.stop_draw()
+        self.exit_button.stop_draw()
+
+    def stop_game(self):
+        self.unpause()
+        Flags.new_scene = True
+        StringFlags.cur_scene = "level_selector"
+
+    def change_scene(self, scene):
+        '''Changes the scene of the gameplay script manager'''
+        self.scene = scene
+
+    def enable_hitlight(self, n):
+        '''Enables the hitlight'''
+        self.hit_lights[n][1].set_time()
+        if not self.hit_lights[n][0].is_drawn:
+            self.hit_lights[n][0].draw()
+
+    def judge_note(self, lane:int):
+        if len(self.note_list[lane]) == 0:
+            return
+
+        note = self.note_list[lane][0]
+        if isinstance(note, AbstractNote):
+            cur_score = note.judge()
+            #Handle point scoring
+            if cur_score == -1:
+                return
+
+            Flags.note_hit_or_missed = True
+
+            if cur_score == 0:
+                self.jth.add_to_q(0)
+                self.miss.play()
+                self.combo = 0
+                return
+            #Draws score text
+            self.jth.add_to_q(cur_score)
+            self.hit.play()
+
+            self.combo += 1
+            self.score += cur_score
+            self.score_updated = True
+            return
+
+    def judge_ln_release(self, lane:int):
+        if len(note_list[lane]) == 0:
+            return
+
+        note = note_list[lane][0]
+        if not isinstance(note, LongNote):
+            return
+        #Checks if long note was being held the from before
+        result = note.judge_release()
 
 #Just spawns some notes every 3 seconds
 def note_test_wrapper():
@@ -78,17 +147,18 @@ class JudgementTextHandler(Wait):
     '''
     #In run(), check if q isn't empty
     #If it is, then set the time to MINIMUM_FRAME -1
-    def __init__(self) -> None:
+    def __init__(self, g_manager:GameplayScriptManager) -> None:
+        self.g_manager = g_manager
         self.q = deque()
         self.to_stop_drawing = -1
         self.needed_time = -1
         self.to_draw = -1
-        self.tick = lambda:Counters.game_ticks
+        self.tick = lambda:Counters.unpaused_ticks
         global_delta_time_list.append(self)
     def time_passed(self):
         if self.q and self.to_draw == -1:
             self.to_draw = self.q.popleft()
-            self.needed_time = Counters.game_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+            self.needed_time = Counters.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
             if self.to_stop_drawing == -1:
                 return True
             return False
@@ -102,42 +172,40 @@ class JudgementTextHandler(Wait):
         return super().time_passed()
     def run(self):
         if self.to_stop_drawing == 0:
-            miss_text.stop_draw()
+            self.g_manager.miss_text.stop_draw()
         if self.to_stop_drawing == 50:
-            bad_text.stop_draw()
+            self.g_manager.bad_text.stop_draw()
         if self.to_stop_drawing == 100:
-            ok_text.stop_draw()
+            self.g_manager.ok_text.stop_draw()
         if self.to_stop_drawing == 200:
-            good_text.stop_draw()
+            self.g_manager.good_text.stop_draw()
         if self.to_stop_drawing == 300:
-            excellent_text.stop_draw()
+            self.g_manager.excellent_text.stop_draw()
         self.to_stop_drawing = -1
 
         if self.to_draw == 0:
-            miss_text.draw()
+            self.g_manager.miss_text.draw()
             self.to_stop_drawing = 0
         elif self.to_draw == 50:
-            bad_text.draw()
+            self.g_manager.bad_text.draw()
             self.to_stop_drawing = 50
         elif self.to_draw == 100:
-            ok_text.draw()
+            self.g_manager.ok_text.draw()
             self.to_stop_drawing = 100
         elif self.to_draw == 200:
-            good_text.draw()
+            self.g_manager.good_text.draw()
             self.to_stop_drawing = 200
         elif self.to_draw == 300:
-            excellent_text.draw()
+            self.g_manager.excellent_text.draw()
             self.to_stop_drawing = 300
         self.to_draw = -1
-        self.needed_time = Counters.game_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
+        self.needed_time = Counters.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
     def add_to_q(self, judgement_value):
         self.q.append(judgement_value)
 
-JTF = JudgementTextHandler()
-
 class AbstractNote(ABC):
     @abstractmethod
-    def judge(self):
+    def judge(self) -> int:
         pass
 
     @abstractmethod
@@ -154,22 +222,27 @@ class AbstractNote(ABC):
 
 class Note(Sprite, AbstractNote):
     '''Class for not long notes'''
-    def __init__(self, key:int) -> None:
+    def __init__(self, script_manager:GameplayScriptManager, key:int) -> None:
         '''Pos is the key needed'''
+        self.script_manager = script_manager
+        self.game = script_manager.game
+        self.jth = script_manager.jth
+        self.scene = script_manager.scene
+
         self.pos = [360+200*key,0]
         self.key = key
-        super().__init__(-8, self.pos, "note", origin=(0,0))
+        super().__init__(self.game, -8, self.pos, "note", origin=(0,0))
         self.draw()
-        note_list[key-1].append(self)
-        self.tick_needed = TIME_NEEDED + Counters.game_ticks
+        script_manager.note_list[key-1].append(self)
+        self.tick_needed = TIME_NEEDED + self.scene.unpaused_ticks
 
     def move(self) -> None:
         '''Function that moves the note'''
         self.pos[1] += SCROLL_SPEED
         #Missed note
         if self.pos[1] > VERTICAL_SIZE:
-            JTF.add_to_q(0)
-            miss.play()
+            self.jth.add_to_q(0)
+            self.script_manager.miss.play()
             self.q_destroy()
 
     def judge(self) -> int:
@@ -181,27 +254,27 @@ class Note(Sprite, AbstractNote):
         #Excellent
         if self._within_range(EXCELLENT_RANGE):
             self.destroy()
-            Counters._300 += 1
+            self.hits_300 += 1
             return 300
         if self._within_range(GOOD_RANGE):
             self.destroy()
-            Counters._200 += 1
+            self.hits_200 += 1
             return 200
         if self._within_range(OK_RANGE):
             self.destroy()
-            Counters._100 += 1
+            self.hits_100 += 1
             return 100
         if self._within_range(BAD_RANGE):
             self.destroy()
-            Counters._50 += 1
+            self.hits_50 += 1
             return 50
         if self._within_range(MISS_RANGE):
-            Counters.miss += 1
+            self.miss_0 += 1
             return 0
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed-range <= Counters.game_ticks <= self.tick_needed+range:
+        if self.tick_needed-range <= Counters.unpaused_ticks <= self.tick_needed+range:
             return True
         return False
 
@@ -209,8 +282,8 @@ class Note(Sprite, AbstractNote):
         '''Queues the the note to be destroyed at the end of the frame'''
         destroy_list.append(self)
         Flags.note_hit_or_missed = True
-        Counters.combo = 0
-        Counters.miss += 1
+        self.combo = 0
+        self.miss_0 += 1
 
     def destroy(self):
         '''Removes itself from note and draw list'''
@@ -219,21 +292,27 @@ class Note(Sprite, AbstractNote):
 
 class LongNote(AbstractNote):
     '''Will maybe implement a minimum length for LNs'''
-    def __init__(self, key, duration) -> None:
+    def __init__(self, script_manger:GameplayScriptManager, key:int, duration:int) -> None:
         '''
         key (1-4) is the key the note is for\n
         duration (ms) is how long the note is
         '''
+
+        self.script_manger = script_manger
+        self.jth = script_manger.jth
+        self.game = script_manger.game
+        self.scene = script_manger.scene
+
         key_x = 360+NOTE_TEXTURE_LENGTH*key
         length = duration * SCROLL_SPEED
         self.key = key
         self.note_duration = duration
-        self.tick_needed_bottom = TIME_NEEDED + Counters.game_ticks
+        self.tick_needed_bottom = TIME_NEEDED + Counters.unpaused_ticks
         #Calculate how long the note is visually based off the length
         self.note_length = duration * SCROLL_SPEED
-        self.bottom_note = Sprite(-7, [key_x,0], 'note')
-        self.top_note = Sprite(-7, [key_x, -length], 'note')
-        self.middle_rect = DrawbleRect(-8, [key_x+20, NOTE_TEXTURE_HEIGHT-length],
+        self.bottom_note = Sprite(self.game, -7, [key_x,0], 'note')
+        self.top_note = Sprite(self.game, -7, [key_x, -length], 'note')
+        self.middle_rect = DrawbleRect(self.game, -8, [key_x+20, NOTE_TEXTURE_HEIGHT-length],
                                         (NOTE_TEXTURE_LENGTH-40, self.note_length), (255,255,255))
         #Note state
         self.note_failed = False
@@ -252,14 +331,14 @@ class LongNote(AbstractNote):
         self.middle_rect.pos[1] += SCROLL_SPEED
         #Missed note
         if self.top_note.pos[1] > VERTICAL_SIZE:
-            JTF.add_to_q(0)
-            miss.play()
+            self.jth.add_to_q(0)
+            self.script_manger.miss.play()
             self.q_destroy()
             return
         if self.bottom_note.pos[1] > VERTICAL_SIZE and not self.bottom_note_scored:
             self.bottom_note_scored = True
-            JTF.add_to_q(0)
-            miss.play()
+            self.jth.add_to_q(0)
+            self.script_manger.miss.play()
 
     def judge(self) -> int:
         '''
@@ -272,29 +351,29 @@ class LongNote(AbstractNote):
             return -1
         #Excellent
         if self._within_range(EXCELLENT_RANGE):
-            Counters._300 += 1
+            self.hits_300 += 1
             self.bottom_note_scored = True
             return 300
         if self._within_range(GOOD_RANGE):
-            Counters._200 += 1
+            self.hits_200 += 1
             self.bottom_note_scored = True
             return 200
         if self._within_range(OK_RANGE):
-            Counters._100 += 1
+            self.hits_100 += 1
             self.bottom_note_scored = True
             return 100
         if self._within_range(BAD_RANGE):
-            Counters._50 += 1
+            self.hits_50 += 1
             self.bottom_note_scored = True
             return 50
         if self._within_range(MISS_RANGE):
-            Counters.miss += 1
+            self.miss_0 += 1
             self.bottom_note_scored = True
             return 0
         return -1
 
     def _within_range(self, range:int) -> bool:
-        if self.tick_needed_bottom-range <= Counters.game_ticks <= self.tick_needed_bottom+range:
+        if self.tick_needed_bottom-range <= Counters.unpaused_ticks <= self.tick_needed_bottom+range:
             return True
         return False
 
@@ -310,50 +389,5 @@ class LongNote(AbstractNote):
         drawn_list.remove(self.middle_rect.to_send)
         note_list[self.key-1].remove(self)
 
-def calculate_acc():
-    Counters.acc = 100*(300*Counters._300+200*Counters._200+100*Counters._100+50*Counters._50)/(300*(Counters._300+Counters._200+Counters._100+Counters._50+Counters.miss))
-
-def judge_note(lane:int):
-    if len(note_list[lane]) == 0:
-        return
-
-    note = note_list[lane][0]
-    if isinstance(note, AbstractNote):
-        cur_score = note.judge()
-        #Handle point scoring
-        if cur_score == -1:
-            return
-
-        Flags.note_hit_or_missed = True
-
-        if cur_score == 0:
-            JTF.add_to_q(0)
-            miss.play()
-            Counters.combo = 0
-            return
-        #Draws score text
-        JTF.add_to_q(cur_score)
-        hit.play()
-
-        Counters.combo += 1
-        Counters.score += cur_score
-        Flags.score_updated = True
-        return
-
-def judge_ln_release(lane:int):
-    if len(note_list[lane]) == 0:
-        return
-
-    note = note_list[lane][0]
-    if not isinstance(note, LongNote):
-        return
-    #Checks if long note was being held the from before
-    result = note.judge_release()
-
-hit_lights:list[list[Sprite|WaitExtendable]] = [[Sprite(-8.5, (560+200*x, VERTICAL_SIZE-250), "hit_light")] for x in range(4)]
-
-def enable_hitlight(n):
-    '''Enables the hitlight'''
-    hit_lights[n][1].set_time()
-    if not hit_lights[n][0].is_drawn:
-        hit_lights[n][0].draw()
+    def calculate_acc(self) -> float:
+        return 100*(300*self.hits_300+200*self.hits_200+100*self.hits_100+50*self.hits_50)/(300*(self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0))

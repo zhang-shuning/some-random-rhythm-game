@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from modules.classes import Wait
     from scenes.gameplay import Note, LongNote
 
+"""
 #Setup/internal buffers
 surface_dict = {} #The surface dict will store drawn lists
 drawn_list = [] # [[surface, pos, priority]]
@@ -47,7 +48,7 @@ class Counters():
     def reset(cls):
         '''Reset values for temporary counters'''
         cls.scene_ticks = 0
-        cls.game_ticks = 0
+        cls.unpaused_ticks = 0
         cls.score = 0
         cls.combo = 0
         cls.acc = 0.0
@@ -61,3 +62,4 @@ Counters.reset()
 
 class StringFlags():
     cur_scene:str = ''
+"""
