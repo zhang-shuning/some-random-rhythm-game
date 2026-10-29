@@ -27,7 +27,7 @@ class GameController():
         self.load_images()
         self.init_scenes()
 
-        self.cur_scene = LevelSelectScene()
+        self.cur_scene = LevelSelectScene(self)
 
         #Initialization stuff
         self.next_scene_str = ""
@@ -83,12 +83,12 @@ class GameController():
         self.scene_name_dict = {
             
         }
+
     def run(self):
         '''Runs the main loop of the game'''
         #Main loop
         while self.running:
             if self.new_scene:
-                self.cur_scene.scene_cleanup()
                 self.cur_scene = self.scene_name_dict[self.cur_scene]
                 self.cur_scene.init_scene()
                 self.new_scene = False
