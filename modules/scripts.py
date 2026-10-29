@@ -1,9 +1,13 @@
 '''This file includes functions that are important to make stuff appear on screen'''
 import pygame
 import pathlib
+from typing import TYPE_CHECKING
 
 from modules.shared_variables import *
 from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE
+
+if TYPE_CHECKING:
+    from main import GameController
 
 def switch_screen(screen:int):
     '''Switch to screen in the input'''
@@ -15,14 +19,14 @@ def reset_game_screen():
     '''Resets the game scene'''
     print("test")
 
-def _load_image(image_path:str|pathlib.Path, texture_name:str, transparent=False):
+def _load_image(game:GameController, image_path:str|pathlib.Path, texture_name:str, transparent=False):
     '''Loads a single image and saves to dictionary based from filename'''
     if not transparent:
-        images_dict[texture_name] = pygame.image.load(image_path).convert()
+        game.images_dict[texture_name] = pygame.image.load(image_path).convert()
     else:
-        images_dict[texture_name] = pygame.image.load(image_path).convert_alpha()
+        game.images_dict[texture_name] = pygame.image.load(image_path).convert_alpha()
 
-def load_images() -> None:
+def load_images(game:GameController) -> None:
     '''Loads all images and saves them to a dictionary'''
     print("Loading images...")
     textures_folder = pathlib.Path("assets/textures")
@@ -31,12 +35,12 @@ def load_images() -> None:
     for item in textures_folder.rglob("*"):
         if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
             print(item.name)
-            _load_image(item, item.stem)
+            _load_image(game, item, item.stem)
     
     for item in transparent_texture_folder.rglob("*"):
         if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
             print(item.name)
-            _load_image(item, item.stem, transparent=True)
+            _load_image(game, item, item.stem, transparent=True)
 
 def handle_fblits(drawn_list[list]):
     '''Updates fblits list from the drawn list'''
@@ -47,9 +51,5 @@ def handle_fblits(drawn_list[list]):
             fblits_list.append((surface, i[1]))
     return fblits_list
 
-def clear_dynamic_lists() -> None:
-    for i in dynamic_containers:
-        i.clear()
-
-if __name__ == "__main__":
-    load_images()
+#if __name__ == "__main__":
+    #load_images()
