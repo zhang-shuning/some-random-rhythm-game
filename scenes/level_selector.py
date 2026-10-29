@@ -16,7 +16,7 @@ exit closes the program
 back goes back to main menu
 '''
 
-class LevelSelectScene(Scene)
+class LevelSelectScene(Scene):
     def __init__(self, game: GameController) -> None:
         super().__init__(game)
         self.intro_text = Text(game, intro_string, (0,0), 10, 30)

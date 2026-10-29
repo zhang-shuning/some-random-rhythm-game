@@ -75,7 +75,6 @@ class MapMakerScene(Scene):
                 self.response.update_and_draw_text("something went wrong with the command")
         elif cmd == 'save':
             self.note_timing_list.sort(key=lambda x:x[1])
-        elif cmd == 'exit':
 
     def event_handler(self,event:pygame.Event):
         if event.type == pygame.KEYDOWN:
