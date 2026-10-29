@@ -18,7 +18,7 @@ replay_header = {}
 replay_buffer = deque(maxlen=8)
 replay_remaining_inputs = deque()
 
-class GamePlayScene(PausableScene):
+class ReplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)

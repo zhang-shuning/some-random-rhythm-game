@@ -11,7 +11,7 @@ from modules.classes import Wait, WaitExtendable, PausableScene
 if TYPE_CHECKING:
     from typing import TYPE_CHECKING
 
-class GamePlayScene(PausableScene):
+class GameplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)

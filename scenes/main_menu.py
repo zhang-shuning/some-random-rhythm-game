@@ -1,43 +1,35 @@
+from main import GameController
 from modules.classes import *
 from modules.scripts import handle_fblits
 
 pygame.font.init()
 
-def goto_level_select():
-    Flags.new_scene = True
-    self.game.next_scene_str = "level_selector"
+class MainMenuScene(Scene)
+    def __init__(self, game: GameController) -> None:
+        super().__init__(game)
+        self.background = Sprite(game, -1, (0,0), "title_image")
+        self.play_button = Button(game, "Play Game", (1100,300), 10, rect_size=(500,100), rect_color=(100,100,0), on_press=goto_level_select)
+        self.settings_button = Button(game, "Settings", (1100,550), 10, rect_size=(500,100))
+        self.exit_button = Button(game, "Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game, rect_color=(0,100,100))
 
-def exit_game():
-    Flags.running = False
+        self.main_menu_elements = (self.play_button, self.settings_button, self.exit_button, self.background)
 
-background = Sprite(-1, (0,0), "title_image")
-play_button = Button("Play Game", (1100,300), 10, rect_size=(500,100), rect_color=(100,100,0), on_press=goto_level_select)
-settings_button = Button("Settings", (1100,550), 10, rect_size=(500,100))
-exit_button = Button("Exit Game", (1100,800), 10, rect_size=(500,100), on_press=exit_game, rect_color=(0,100,100))
+    def init(self):
+        for element in self.main_menu_elements: 
+            element.draw()
 
-main_menu_elements = (play_button, settings_button, exit_button, background)
+    def event_handler(self, event:pygame.Event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.running = False
 
-def init():
-    open_main_menu()
-
-def event_handler(event:pygame.Event):
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-            Flags.running = False
-
-def render(screen):
-    if Counters.ticks % FRAME_FREQUENCY == 0:
+    def render(self, screen):
         screen.fill((152,100,0))
-        handle_fblits()
-        screen.fblits(fblits_list)
+        screen.fblits(handle_fblits(self.fblits_list))
 
-def make_scene():
-    Scene("main_menu", event_handler, render=render, scene_init_function=init)
+    def goto_level_select(self):
+        self.game.new_scene = True
+        self.game.next_scene_str = "level_selector"
 
-def open_main_menu():
-    for element in main_menu_elements: 
-        element.draw()
-
-def close_main_menu():
-    for element in main_menu_elements:
-        element.stop_draw()
+    def exit_game(self):
+        self.running = False

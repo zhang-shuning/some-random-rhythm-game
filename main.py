@@ -2,22 +2,31 @@
 # pylint: disable=no-member
 import time
 import pygame
+import pathlib
 from typing import TYPE_CHECKING
 
 from modules.classes import Text, Wait, Scene
 from modules.constants import *
-from modules.scripts import load_images, handle_fblits
+from modules.scripts import handle_fblits
 
 from scenes.gameplay_scripts import GameplayScriptManager
+from scenes.gameplay import GameplayScene
+from scenes.level_selector import LevelSelectScene
+from scenes.main_menu import MainMenuScene
+from scenes.map_maker import MapMakerScene
+from scenes.replay import ReplayScene
 
 #Pygame variable initialization
 screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE),pygame.FULLSCREEN | pygame.SCALED)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
-load_images()
+
 
 class GameController():
     def __init__(self) -> None:
+        self.load_images()
+        self.init_scenes()
+
         self.cur_scene = LevelSelectScene()
 
         #Initialization stuff
@@ -46,6 +55,34 @@ class GameController():
         self.scene_name_dict = {}
         self.button_list = []
 
+    def _load_image(self, image_path:str|pathlib.Path, texture_name:str, transparent=False):
+        '''Loads a single image and saves to dictionary based from filename'''
+        if not transparent:
+            self.images_dict[texture_name] = pygame.image.load(image_path).convert()
+        else:
+            self.images_dict[texture_name] = pygame.image.load(image_path).convert_alpha()
+
+    def load_images(self) -> None:
+        '''Loads all images and saves them to a dictionary'''
+        print("Loading images...")
+        textures_folder = pathlib.Path("assets/textures")
+        transparent_texture_folder = pathlib.Path("assets/textures-transparent")
+
+        for item in textures_folder.rglob("*"):
+            if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
+                print(item.name)
+                self._load_image(item, item.stem)
+        
+        for item in transparent_texture_folder.rglob("*"):
+            if item.is_file() and item.suffix in IMAGE_FILE_EXTENSIONS:
+                print(item.name)
+                self._load_image(item, item.stem, transparent=True)
+
+    def init_scenes(self) -> None:
+        '''Hard coded because... I really couldn't think of anything better at the time'''
+        self.scene_name_dict = {
+            
+        }
     def run(self):
         '''Runs the main loop of the game'''
         #Main loop
