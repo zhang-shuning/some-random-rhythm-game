@@ -26,34 +26,33 @@ class LevelSelectScene(Scene)
         if command == "exit":
             self.game.running = False
         elif command == "back":
-            game.new_scene = True
+            self.game.new_scene = True
             self.game.next_scene_str = "main_menu"
         elif command == "1":
-            Flags.new_scene = True
+            self.game.new_scene = True
             self.game.next_scene_str = "gameplay"
         elif command == '2':
-            Flags.new_scene = True
+            self.game.new_scene = True
             self.game.next_scene_str = "replay"
 
     def event_handler(self, event:pygame.Event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                Flags.running = False
+                self.game.running = False
             elif event.key == pygame.K_BACKSPACE and (event.mod & pygame.KMOD_CTRL):
-                text_box.update_and_draw_text("")
+                self.text_box.update_and_draw_text("")
             elif event.key == pygame.K_BACKSPACE:
-                text_box.update_and_draw_text(text_box.text[:-1])
+                self.text_box.update_and_draw_text(self.text_box.text[:-1])
             elif event.key == pygame.K_RETURN:
-                run_command(text_box.text)
-                text_box.update_and_draw_text("")
+                self.run_command(self.text_box.text)
+                self.text_box.update_and_draw_text("")
         elif event.type == pygame.TEXTINPUT:
-            text_box.update_and_draw_text(text_box.text + event.text)
+            self.text_box.update_and_draw_text(self.text_box.text + event.text)
 
 
     def render(self, screen):
-        if Counters.ticks % FRAME_FREQUENCY == 0:
-            screen.fill((152,100,0))
-            screen.fblits(handle_fblits(self.fblits_list))
+        screen.fill((152,100,0))
+        screen.fblits(handle_fblits(self.fblits_list))
 
     def scene_init(self):
         self.intro_text.draw()
