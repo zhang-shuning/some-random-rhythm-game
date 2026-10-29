@@ -15,7 +15,7 @@ class GameplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         super().__init__(game)
 
-    def events(self, event: pygame.Event):
+    def handle_event(self, event: pygame.Event):
         if event.type == pygame.QUIT:
             #I shouldn't need any cleanup after quit, so I should be able to keep this
             #For all scenes
@@ -72,22 +72,14 @@ class GameplayScene(PausableScene):
                 else:
                     self.gameplay_objects.unpause()
 
-    def held_keys(self, keys):
-        #Only check if the frame is being drawn for hitlights because hitlights are rendered
-        if self.unpaused_ticks % FRAME_FREQUENCY == 0:
-            if not self.is_paused:
-                if keys[pygame.K_d]:
-                    self.gameplay_objects.enable_hitlight(0)
-                if keys[pygame.K_f]:
-                    self.gameplay_objects.enable_hitlight(1)
-                if keys[pygame.K_j]:
-                    self.gameplay_objects.enable_hitlight(2)
-                if keys[pygame.K_k]:
-                    self.gameplay_objects.enable_hitlight(3)
+    def pre_render(self):
+        for i in self.delta_time_list:
+            if i.time_passed():
+                i.run()
 
     def render(self, screen):
-        #Ensures that it still runs even if the game is paused
         if self.unpaused_ticks % FRAME_FREQUENCY == 0 or (self.is_paused and self.game.ticks % FRAME_FREQUENCY == 0):
+            #Ensures that it still runs even if the game is paused
             #Clear screen
             screen.fill((100,0,0))
             #Update score
@@ -99,6 +91,12 @@ class GameplayScene(PausableScene):
                 self.acc = self.gameplay_objects.calculate_acc()
                 self.gameplay_objects.acc_text.update_and_draw_text(f"{self.gameplay_objects.acc:.2f}%")
                 self.gameplay_objects.note_hit_or_missed = False
+            #handle hitlights
+
+            for i in enumerate(self.gameplay_objects.held_notes):
+                if i[1]:
+                    self.gameplay_objects.enable_hitlight(i[0])
+
             #Draw screen
             screen.fblits(handle_fblits(self.drawn_list))
             #Move notes
@@ -123,7 +121,7 @@ class GameplayScene(PausableScene):
         for i in self.gameplay_objects.hit_lights:
             #some janky code
             #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
-            i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
+            i.append(WaitExtendable(self.game, HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
 
 
 #Input array

@@ -50,8 +50,9 @@ class LevelSelectScene(Scene):
             self.text_box.update_and_draw_text(self.text_box.text + event.text)
 
     def render(self, screen):
-        screen.fill((152,100,0))
-        screen.fblits(handle_fblits(self.drawn_list))
+        if self.game.ticks % FRAME_FREQUENCY == 0:
+            screen.fill((152,100,0))
+            screen.fblits(handle_fblits(self.drawn_list))
 
     def scene_init(self):
         print("scene init")

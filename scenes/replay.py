@@ -22,7 +22,7 @@ class ReplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         super().__init__(game)
 
-    def events(self, event: pygame.Event):
+    def handle_event(self, event: pygame.Event):
         if event.type == pygame.QUIT:
             #I shouldn't need any cleanup after quit, so I should be able to keep this
             #For all scenes
@@ -66,7 +66,7 @@ class ReplayScene(PausableScene):
 
     def render(self, screen):
         #Ensures that it still runs even if the game is paused
-        if self.unpaused_ticks % FRAME_FREQUENCY == 0 or (self.is_paused and self.game.ticks % FRAME_FREQUENCY == 0):
+        if (self.unpaused_ticks % FRAME_FREQUENCY == 0  and not self.is_paused) or (self.is_paused and self.game.ticks % FRAME_FREQUENCY == 0):
             #Clear screen
             screen.fill((100,0,0))
             #Update score
@@ -102,7 +102,7 @@ class ReplayScene(PausableScene):
         for i in self.gameplay_objects.hit_lights:
             #some janky code
             #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
-            i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
+            i.append(WaitExtendable(self.game, HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
 
 def read_replay(replay_file:pathlib.Path):
     '''Reads the replay and returns a tuple of data'''

@@ -51,7 +51,7 @@ class GameController():
         self.cur_time = time.time()
         self.ticks_to_increment = 1
 
-        self.cur_scene = None
+        self.cur_scene:Scene = Scene(self)
 
     def _load_image(self, image_path:str|pathlib.Path, texture_name:str, transparent=False):
         '''Loads a single image and saves to dictionary based from filename'''
@@ -92,8 +92,8 @@ class GameController():
         while self.running:
             if self.new_scene:
                 self.cur_scene = self.scene_name_dict[self.next_scene_str](self)
-                self.cur_scene.scene_init()
                 print(f"initializing {self.cur_scene}")
+                self.cur_scene.scene_init()
                 self.new_scene = False
 
             assert isinstance(self.cur_scene, Scene)
@@ -119,10 +119,9 @@ class GameController():
             self.cur_scene.pre_render()
 
             #Render
-            if self.ticks % FRAME_FREQUENCY == 0:
-                self.cur_scene.render(screen)
-                screen.fblits(handle_fblits(self.global_draw_list))
-                pygame.display.flip()
+            self.cur_scene.render(screen)
+            screen.fblits(handle_fblits(self.global_draw_list))
+            pygame.display.flip()
 
             #If time is too off the expected time, go multiple ticks instead
             self.expected_time += S_PER_TICK
@@ -135,6 +134,7 @@ class GameController():
                 self.expected_time += ticks_to_increment*S_PER_TICK
             
             #Next tick
+            #print(self.ticks, self.global_delta_time_list)
             self.cur_scene.tick()
             self.ticks+=1
 

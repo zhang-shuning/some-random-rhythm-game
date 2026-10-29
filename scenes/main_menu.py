@@ -13,7 +13,6 @@ class MainMenuScene(Scene):
         super().__init__(game)
 
     def scene_init(self):
-        print("initializing scene")
         self.background = Sprite(self.game, -1, (0,0), "title_image")
         self.play_button = Button(self.game, "Play Game", (1100,300), 10, rect_size=(500,100),
                                    rect_color=(100,100,0), on_press=self.goto_level_select)
@@ -31,12 +30,13 @@ class MainMenuScene(Scene):
                 self.game.running = False
 
     def render(self, screen):
-        screen.fill((152,100,0))
-        screen.fblits(handle_fblits(self.drawn_list))
+        if self.game.ticks % FRAME_FREQUENCY == 0:
+            screen.fill((152,100,0))
+            screen.fblits(handle_fblits(self.drawn_list))
 
     def goto_level_select(self):
         self.game.new_scene = True
         self.game.next_scene_str = "level_selector"
 
     def exit_game(self):
-        self.running = False
+        self.game.running = False

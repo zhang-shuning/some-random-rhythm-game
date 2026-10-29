@@ -30,7 +30,7 @@ class GameplayScriptManager():
         self.keypress.set_volume(.2)
         self.miss.set_volume(.6)
 
-        self.note_list = []
+        self.note_list = [[],[],[],[]]
 
         #Score/hits
         self.score_updated = False
@@ -68,18 +68,21 @@ class GameplayScriptManager():
 
     #Button function declaration
     def pause(self):
-        self.is_paused = True
+        assert isinstance(self.scene, PausableScene)
+        self.scene.is_paused = True
         self.unpause_button.draw()
         self.restart_button.draw()
         self.exit_button.draw()
 
     def unpause(self):
-        self.is_paused = False
+        assert isinstance(self.scene, PausableScene)
+        self.scene.is_paused = False
         self.unpause_button.stop_draw()
         self.restart_button.stop_draw()
         self.exit_button.stop_draw()
 
     def stop_game(self):
+        assert isinstance(self.scene, PausableScene)
         self.unpause()
         self.game.new_scene = True
         self.game.next_scene_str = "level_selector"
@@ -127,6 +130,9 @@ class GameplayScriptManager():
         #Checks if long note was being held the from before
         result = note.judge_release()
     def calculate_acc(self) -> float:
+        #Check for division by 0
+        if self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0 == 0:
+            return 100.00
         return 100*(300*self.hits_300+200*self.hits_200+100*self.hits_100+50*self.hits_50)/(300*(self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0))
 
     #Just spawns some notes every 3 seconds
@@ -147,7 +153,7 @@ class JudgementTextHandler(Wait):
     '''
     #In run(), check if q isn't empty
     #If it is, then set the time to MINIMUM_FRAME -1
-    def __init__(self, g_manager:GameplayScriptManager) -> None:
+    def __init__(self, g_manager:GameplayScriptManager) -> None:    
         self.g_manager = g_manager
         self.game = g_manager.game
         self.scene = g_manager.game.cur_scene
@@ -156,11 +162,12 @@ class JudgementTextHandler(Wait):
         self.to_stop_drawing = -1
         self.needed_time = -1
         self.to_draw = -1
-        self.tick = lambda:self.scene.unpaused_ticks
+        self.tick = lambda:self.scene.unpaused_ticks #type: ignore
         self.game.global_delta_time_list.append(self)
     def time_passed(self):
         if self.q and self.to_draw == -1:
             self.to_draw = self.q.popleft()
+            assert isinstance(self.scene, PausableScene)
             self.needed_time = self.scene.unpaused_ticks + MAXMUM_JUDGEMENT_TEXT_FRAMES*FRAME_FREQUENCY
             if self.to_stop_drawing == -1:
                 return True
@@ -257,22 +264,22 @@ class Note(Sprite, AbstractNote):
         #Excellent
         if self._within_range(EXCELLENT_RANGE):
             self.destroy()
-            self.hits_300 += 1
+            self.script_manager.hits_300 += 1
             return 300
         if self._within_range(GOOD_RANGE):
             self.destroy()
-            self.hits_200 += 1
+            self.script_manager.hits_200 += 1
             return 200
         if self._within_range(OK_RANGE):
             self.destroy()
-            self.hits_100 += 1
+            self.script_manager.hits_100 += 1
             return 100
         if self._within_range(BAD_RANGE):
             self.destroy()
-            self.hits_50 += 1
+            self.script_manager.hits_50 += 1
             return 50
         if self._within_range(MISS_RANGE):
-            self.miss_0 += 1
+            self.script_manager.miss_0 += 1
             return 0
         return -1
 
@@ -285,8 +292,8 @@ class Note(Sprite, AbstractNote):
         '''Queues the the note to be destroyed at the end of the frame'''
         self.scene.destroy_list.append(self)
         self.script_manager.note_hit_or_missed = True
-        self.combo = 0
-        self.miss_0 += 1
+        self.script_manager.combo = 0
+        self.script_manager.miss_0 += 1
 
     def destroy(self):
         '''Removes itself from note and draw list'''
@@ -295,16 +302,16 @@ class Note(Sprite, AbstractNote):
 
 class LongNote(AbstractNote):
     '''Will maybe implement a minimum length for LNs'''
-    def __init__(self, script_manger:GameplayScriptManager, key:int, duration:int) -> None:
+    def __init__(self, script_manager:GameplayScriptManager, key:int, duration:int) -> None:
         '''
         key (1-4) is the key the note is for\n
         duration (ms) is how long the note is
         '''
 
-        self.script_manger = script_manger
-        self.jth = script_manger.jth
-        self.game = script_manger.game
-        self.scene = script_manger.scene
+        self.script_manager = script_manager
+        self.jth = script_manager.jth
+        self.game = script_manager.game
+        self.scene = script_manager.scene
 
         key_x = 360+NOTE_TEXTURE_LENGTH*key
         length = duration * SCROLL_SPEED
@@ -324,7 +331,7 @@ class LongNote(AbstractNote):
         self.bottom_note.draw()
         self.top_note.draw()
         self.middle_rect.draw()
-        self.script_manger.note_list[key-1].append(self)
+        self.script_manager.note_list[key-1].append(self)
 
     @override
     def move(self) -> None:
@@ -335,13 +342,13 @@ class LongNote(AbstractNote):
         #Missed note
         if self.top_note.pos[1] > VERTICAL_SIZE:
             self.jth.add_to_q(0)
-            self.script_manger.miss.play()
+            self.script_manager.miss.play()
             self.q_destroy()
             return
         if self.bottom_note.pos[1] > VERTICAL_SIZE and not self.bottom_note_scored:
             self.bottom_note_scored = True
             self.jth.add_to_q(0)
-            self.script_manger.miss.play()
+            self.script_manager.miss.play()
 
     def judge(self) -> int:
         '''
@@ -354,23 +361,23 @@ class LongNote(AbstractNote):
             return -1
         #Excellent
         if self._within_range(EXCELLENT_RANGE):
-            self.hits_300 += 1
+            self.script_manager.hits_300 += 1
             self.bottom_note_scored = True
             return 300
         if self._within_range(GOOD_RANGE):
-            self.hits_200 += 1
+            self.script_manager.hits_200 += 1
             self.bottom_note_scored = True
             return 200
         if self._within_range(OK_RANGE):
-            self.hits_100 += 1
+            self.script_manager.hits_100 += 1
             self.bottom_note_scored = True
             return 100
         if self._within_range(BAD_RANGE):
-            self.hits_50 += 1
+            self.script_manager.hits_50 += 1
             self.bottom_note_scored = True
             return 50
         if self._within_range(MISS_RANGE):
-            self.miss_0 += 1
+            self.script_manager.miss_0 += 1
             self.bottom_note_scored = True
             return 0
         return -1
@@ -390,4 +397,4 @@ class LongNote(AbstractNote):
         self.scene.drawn_list.remove(self.bottom_note.to_send)
         self.scene.drawn_list.remove(self.top_note.to_send)
         self.scene.drawn_list.remove(self.middle_rect.to_send)
-        self.script_manger.note_list[self.key-1].remove(self)
+        self.script_manager.note_list[self.key-1].remove(self)

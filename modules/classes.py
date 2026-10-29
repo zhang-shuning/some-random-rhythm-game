@@ -81,16 +81,16 @@ class DrawnEntity(AbstractDrawable):
 
 class DrawbleRect(AbstractDrawable):
     '''No origin because I don't feel like it'''
-    def __init__(self, game, priority, pos, size:tuple[int,int]|list[int], color, scene:Scene|None = None) -> None:
+    def __init__(self, game:GameController, priority, pos, size:tuple[int,int]|list[int], color, is_global = False) -> None:
         self.pos=pos
         self.priority=priority
         self.rect = pygame.surface.Surface(size=size)
         self.rect.fill(color=color)
         self.to_send = [[self.rect], pos, priority]
-        if scene is None:
+        if is_global:
             self.drawn_list = game.global_draw_list
         else:
-            self.drawn_list = scene.drawn_list
+            self.drawn_list = game.cur_scene.drawn_list
 
     @override
     def stop_draw(self) -> None:
@@ -176,10 +176,10 @@ class Wait():
         if not is_global:
             scene = game.cur_scene
             self.tick = lambda:scene.scene_ticks
-            self.delta_list = scene.delta_time_list
+            scene.delta_time_list.append(self)
         else:
             self.tick = lambda:game.ticks
-            self.delta_list = game.global_delta_time_list
+            game.global_delta_time_list.append(self)
         self.repeats = repeats
         self.needed_time = self.tick() + delta*TPS_CAP
         self.func = func
@@ -187,6 +187,7 @@ class Wait():
         if repeats:
             self.delta = delta
 
+    
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
         if self.tick() < self.needed_time:
@@ -205,9 +206,9 @@ class Wait():
 
 class WaitExtendable(Wait):
     '''Wait class but the time when the function happens can be extended'''
-    def __init__(self, delta, func: Callable[..., Any], *args) -> None:
+    def __init__(self, game:GameController, delta, func: Callable[..., Any], *args) -> None:
         self.activated = False
-        super().__init__(delta, func, *args, repeats=True)
+        super().__init__(game, delta, func, *args, repeats=True)
 
     def set_time(self, time:int|float=-1):
         '''
@@ -313,3 +314,7 @@ class PausableScene(Scene):
         self.unpaused_ticks = 0
         self.is_paused = False
         super().__init__(game)
+    def tick(self):
+        if not self.is_paused:
+            self.unpaused_ticks += 1
+        return super().tick()
