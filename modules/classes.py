@@ -167,7 +167,7 @@ class Sprite(DrawnEntity):
 class Wait():
     '''Class that is used to run code in delta ticks'''
     def __init__(self, game:GameController, delta, func:Callable, *args,
-                repeats=False, is_global = False) -> None:
+                repeats=False, is_global = False, use_unpaused_ticks = False) -> None:
         '''
         If scene is None, then it uses the global delta time list
         Otherwise, use the scene ticks
@@ -175,7 +175,10 @@ class Wait():
 
         if not is_global:
             scene = game.cur_scene
-            self.tick = lambda:scene.scene_ticks
+            if use_unpaused_ticks:
+                self.tick = lambda:scene.unpaused_ticks #type: ignore
+            else:
+                self.tick = lambda:scene.scene_ticks
             scene.delta_time_list.append(self)
         else:
             self.tick = lambda:game.ticks
@@ -187,7 +190,6 @@ class Wait():
         if repeats:
             self.delta = delta
 
-    
     def time_passed(self):
         '''Returns whether the time passed yet or not'''
         if self.tick() < self.needed_time:
@@ -206,9 +208,11 @@ class Wait():
 
 class WaitExtendable(Wait):
     '''Wait class but the time when the function happens can be extended'''
-    def __init__(self, game:GameController, delta, func: Callable[..., Any], *args) -> None:
+    def __init__(self, game:GameController, delta, func:Callable, *args,
+                is_global = False, use_unpaused_ticks = False) -> None:
         self.activated = False
-        super().__init__(game, delta, func, *args, repeats=True)
+        super().__init__( game, delta, func, *args,
+                repeats=True, is_global = is_global, use_unpaused_ticks = use_unpaused_ticks)
 
     def set_time(self, time:int|float=-1):
         '''

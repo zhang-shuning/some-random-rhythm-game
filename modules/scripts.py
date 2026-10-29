@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 def handle_fblits(drawn_list:list):
     '''Updates fblits list from the drawn list'''
     drawn_list.sort(key=lambda x:x[2])
-    print(drawn_list)
     fblits_list = []
     for i in drawn_list:
         for surface in i[0]:
