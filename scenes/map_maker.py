@@ -1,15 +1,18 @@
 '''Also text based for now.'''
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 import hashlib
 import pathlib
 import struct
 
 import pygame
 
-from main import GameController
 from modules.classes import Scene, Text
 from modules.scripts import handle_fblits
 from modules.constants import *
+
+if TYPE_CHECKING:
+    from main import GameController
 
 '''
 The plan for the map is to have the file store the timings of the notes, and convert it to ticks when reading the note
@@ -45,9 +48,6 @@ def str_fits_in_u_short(n:str):
 class MapMakerScene(Scene):
     def __init__(self, game: GameController) -> None:
         super().__init__(game)
-        self.intro_text = Text(game, intro_string, (0,0), 10, 30)
-        self.text_box = Text(game, "", (0, 200), 10)
-        self.response = Text(game, "", (0, 900), 10)
         self.current_map = None
 
         self.note_timing_list = [] # (LN/Normal, pos, time start, (time end))
@@ -76,7 +76,7 @@ class MapMakerScene(Scene):
         elif cmd == 'save':
             self.note_timing_list.sort(key=lambda x:x[1])
 
-    def event_handler(self,event:pygame.Event):
+    def handle_event(self,event:pygame.Event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.running = False
@@ -92,9 +92,12 @@ class MapMakerScene(Scene):
 
     def render(self,screen):
         screen.fill((152,100,0))
-        screen.fblits(handle_fblits(self.fblits_list))
+        screen.fblits(handle_fblits(self.drawn_list))
 
     def scene_init(self):
+        self.intro_text = Text(self.game, intro_string, (0,0), 10, 30)
+        self.text_box = Text(self.game, "", (0, 200), 10)
+        self.response = Text(self.game, "", (0, 900), 10)
         self.intro_text.draw()
 
     def save_map(self):

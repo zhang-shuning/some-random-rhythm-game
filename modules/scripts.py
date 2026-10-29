@@ -8,7 +8,7 @@ from modules.constants import IMAGE_FILE_EXTENSIONS
 if TYPE_CHECKING:
     from main import GameController
 
-def handle_fblits(drawn_list[list]):
+def handle_fblits(drawn_list:list):
     '''Updates fblits list from the drawn list'''
     drawn_list.sort(key=lambda x:x[2])
     fblits_list = []

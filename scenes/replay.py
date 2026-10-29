@@ -20,7 +20,6 @@ replay_remaining_inputs = deque()
 
 class ReplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
-        self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)
 
     def events(self, event: pygame.Event):
@@ -92,6 +91,7 @@ class ReplayScene(PausableScene):
             self.destroy_list.clear()
 
     def scene_init(self):
+        self.gameplay_objects = GameplayScriptManager(self.game)
         self.gameplay_objects.score_text.draw()
         self.gameplay_objects.acc_text.draw()
         self.gameplay_objects.combo_text.draw()

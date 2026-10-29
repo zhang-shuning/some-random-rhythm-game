@@ -31,7 +31,6 @@ class DrawnEntity(AbstractDrawable):
     '''This is the base class for all entities that get drawn on screen.'''
     def __init__(self, game:GameController, priority:int, pos:tuple[int,int]|list[int], origin = (0,0), center=False, is_global=False) -> None:
         '''If scene is none, then it it is global'''
-        self.scene = game.cur_scene
         self.orig_pos = pos
         self.pos = pos
         self.priority = priority
@@ -44,7 +43,7 @@ class DrawnEntity(AbstractDrawable):
         if is_global:
             self.drawn_list = game.global_draw_list
         else:
-            self.drawn_list = self.scene.drawn_list
+            self.drawn_list = game.cur_scene.drawn_list
         self.setup()
 
     def setup(self, entity_index=0) -> None:
@@ -109,12 +108,13 @@ class DrawbleRect(AbstractDrawable):
 class Text(DrawnEntity):
     '''This class is for text on screen'''
     def __init__(self, game:GameController, text:str, pos:tuple[int,int], priority:int, font_size:int = 30, origin = (0,0),
-                  text_color:tuple[int,int,int] = (255, 255, 255), bg_color:tuple[int,int,int]|None = None) -> None:
+                text_color:tuple[int,int,int] = (255, 255, 255),
+                bg_color:tuple[int,int,int]|None = None, is_global:bool = False) -> None:
         self.text = text
         self.font_size = font_size
         self.text_color = text_color
         self.bg_color = bg_color
-        super().__init__(game, priority, pos, origin=origin)
+        super().__init__(game, priority, pos, origin=origin, is_global=is_global)
 
     @override
     def setup(self, entity_index=0):
@@ -286,6 +286,9 @@ class Scene():
         self.rect_list:list[tuple[Rect, Callable[[]]]] = [] #List of buttons
         self.delta_time_list:list[Wait] = [] #List of delta time objects
 
+    def scene_init(self):
+        pass
+
     def handle_event(self, event):
         pass
 
@@ -310,4 +313,3 @@ class PausableScene(Scene):
         self.unpaused_ticks = 0
         self.is_paused = False
         super().__init__(game)
-

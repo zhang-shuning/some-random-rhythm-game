@@ -1,19 +1,18 @@
 import pathlib
 import struct
+from typing import TYPE_CHECKING
 
 import pygame
 
-from main import GameController
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
 from modules.classes import Wait, WaitExtendable, PausableScene
 
 if TYPE_CHECKING:
-    from typing import TYPE_CHECKING
+    from main import GameController
 
 class GameplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
-        self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)
 
     def events(self, event: pygame.Event):
@@ -113,6 +112,7 @@ class GameplayScene(PausableScene):
             self.destroy_list.clear()
 
     def scene_init(self):
+        self.gameplay_objects = GameplayScriptManager(self.game)
         self.gameplay_objects.score_text.draw()
         self.gameplay_objects.acc_text.draw()
         self.gameplay_objects.combo_text.draw()
