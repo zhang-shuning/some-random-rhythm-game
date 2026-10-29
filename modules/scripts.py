@@ -38,13 +38,14 @@ def load_images() -> None:
             print(item.name)
             _load_image(item, item.stem, transparent=True)
 
-def handle_fblits():
+def handle_fblits(drawn_list[list]):
     '''Updates fblits list from the drawn list'''
     drawn_list.sort(key=lambda x:x[2])
-    fblits_list.clear()
+    fblits_list = []
     for i in drawn_list:
         for surface in i[0]:
             fblits_list.append((surface, i[1]))
+    return fblits_list
 
 def clear_dynamic_lists() -> None:
     for i in dynamic_containers:

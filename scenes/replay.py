@@ -8,9 +8,8 @@ import pathlib
 
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
-from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, Scene, Button
+from modules.classes import Wait, WaitExtendable, PausableScene
 from modules.constants import *
-from modules.shared_variables import *
 
 #The replay is in the form (time, note pos)
 #0-3 for note lane 1-4, 
@@ -19,103 +18,93 @@ replay_header = {}
 replay_buffer = deque(maxlen=8)
 replay_remaining_inputs = deque()
 
-def events(event: pygame.Event):
-    if event.type == pygame.QUIT:
-        #I shouldn't need any cleanup after quit, so I should be able to keep this
-        #For all scenes
-        Flags.running = False
-        if DEBUG:
-            mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
-            print(f"mouse pos {pygame.mouse.get_pos()}")
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-            Flags.running = False
-        elif event.key == pygame.K_z:
-            read_replay(pathlib.Path("replays/latest.replay"))
-        if event.key == pygame.K_1:
-            if not Flags.is_paused:
-                pause()
+class GamePlayScene(PausableScene):
+    def __init__(self, game: GameController) -> None:
+        self.gameplay_objects = GameplayScriptManager(game)
+        super().__init__(game)
+
+    def events(self, event: pygame.Event):
+        if event.type == pygame.QUIT:
+            #I shouldn't need any cleanup after quit, so I should be able to keep this
+            #For all scenes
+            self.game.running = False
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if DEBUG:
+                self.gameplay_objects.mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
+                print(f"mouse pos {pygame.mouse.get_pos()}")
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.game.running = False
+            elif event.key == pygame.K_z:
+                read_replay(pathlib.Path("replays/latest.replay"))
+            if event.key == pygame.K_1:
+                if not self.is_paused:
+                    self.gameplay_objects.pause()
+                else:
+                    self.gameplay_objects.unpause()
+
+    def pre_render(self):
+        '''Handles the playing back of the replay'''
+        update_buffer()
+        while 1:
+            if len(replay_buffer) == 0:
+                break
+            if replay_buffer[0][0] <= self.scene_ticks * replay_header["tps"] / TPS_CAP:
+                if 0 <= replay_buffer[0][1] <= 3:
+                    self.gameplay_objects.judge_note(replay_buffer[0][1])
+                    self.gameplay_objects.held_notes[replay_buffer[0][1]] = True
+                    replay_buffer.popleft()
+                elif 4 <= replay_buffer[0][1] <= 7:
+                    self.gameplay_objects.judge_ln_release(replay_buffer[0][1]-4)
+                    self.gameplay_objects.held_notes[replay_buffer[0][1]-4] = False
+                    replay_buffer.popleft()
             else:
-                unpause()
+                break
 
-def pre_render():
-    '''Handles the playing back of the replay'''
-    update_buffer()
-    while 1:
-        if len(replay_buffer) == 0:
-            break
-        if replay_buffer[0][0] <= Counters.scene_ticks * replay_header["tps"] / TPS_CAP:
-            if 0 <= replay_buffer[0][1] <= 3:
-                judge_note(replay_buffer[0][1])
-                held_notes[replay_buffer[0][1]] = True
-                replay_buffer.popleft()
-            elif 4 <= replay_buffer[0][1] <= 7:
-                judge_ln_release(replay_buffer[0][1]-4)
-                held_notes[replay_buffer[0][1]-4] = False
-                replay_buffer.popleft()
-        else:
-            break
+        for i in enumerate(self.gameplay_objects.held_notes):
+            if self.gameplay_objects.held_notes[i[1]] is True:
+                self.gameplay_objects.enable_hitlight(i[0]) 
 
-    for i in enumerate(held_notes):
-        if held_notes[i[1]] is True:
-            enable_hitlight(i[0]) 
+    def render(self, screen):
+        #Ensures that it still runs even if the game is paused
+        if self.unpaused_ticks % FRAME_FREQUENCY == 0 or (self.is_paused and self.game.ticks % FRAME_FREQUENCY == 0):
+            #Clear screen
+            screen.fill((100,0,0))
+            #Update score
+            if self.gameplay_objects.score_updated:
+                self.gameplay_objects.score_text.update_and_draw_text(f"{self.gameplay_objects.score}")
+                self.gameplay_objects.score_updated = False
+            if self.gameplay_objects.note_hit_or_missed:
+                self.gameplay_objects.combo_text.update_and_draw_text(f"{self.gameplay_objects.combo}")
+                self.acc = self.gameplay_objects.calculate_acc()
+                self.gameplay_objects.acc_text.update_and_draw_text(f"{self.gameplay_objects.acc:.2f}%")
+                self.gameplay_objects.note_hit_or_missed = False
+            #Draw screen
+            screen.fblits(handle_fblits(self.drawn_list))
+            #Move notes
+            if not self.is_paused:
+                for note_row in self.gameplay_objects.note_list:
+                    for note in note_row:
+                        note.move()
 
-def render(screen):
-    #Rendering
-    if Counters.unpaused_ticks % FRAME_FREQUENCY == 0 or (Flags.is_paused and Counters.ticks % FRAME_FREQUENCY == 0):
-        #Clear screen
-        screen.fill((100,0,0))
-        #Update score
-        if Flags.score_updated:
-            score_text.update_and_draw_text(f"{Counters.score}")
-            Flags.score_updated = False
-        if Flags.note_hit_or_missed:
-            combo_text.update_and_draw_text(f"{Counters.combo}")
-            calculate_acc()
-            acc_text.update_and_draw_text(f"{Counters.acc:.2f}%")
-            Flags.note_hit_or_missed = False
-        #Draw screen
-        handle_fblits()
-        screen.fblits(fblits_list)
-        #Move notes
-        if not Flags.is_paused:
-            for note_row in note_list:
-                for note in note_row:
-                    note.move()
+            for i in self.destroy_list:
+                i.destroy()
+            self.destroy_list.clear()
 
-        for i in destroy_list:
-            i.destroy()
-        destroy_list.clear()
+            pygame.display.flip()
 
-        pygame.display.flip()
-
-def scene_init():
-    score_text.draw()
-    acc_text.draw()
-    combo_text.draw()
-    chart.draw()
-    judgement_line.draw()
-    note_test_wrapper()
-    Wait(1, note_test_wrapper, repeats=True, use_game_tick=True)
-    for i in hit_lights:
-        i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
-    read_replay(pathlib.Path("replays/latest.replay"))
-
-def scene_cleanup():
-    for i in note_list:
-        i.clear()
-    replay_header.clear()
-    replay_buffer.clear()
-    replay_remaining_inputs.clear()
-    for i in range(4):
-        held_notes[i] = False
-
-def make_scene():
-    '''
-    Function that makes the scene
-    Thinking back, it might've been better to just put this in the class...
-    '''
-    Scene("replay", events, pre_render=pre_render, render=render, scene_init_function=scene_init, scene_cleanup=scene_cleanup)
+    def scene_init(self):
+        self.gameplay_objects.score_text.draw()
+        self.gameplay_objects.acc_text.draw()
+        self.gameplay_objects.combo_text.draw()
+        self.gameplay_objects.chart.draw()
+        self.gameplay_objects.judgement_line.draw()
+        note_test_wrapper()
+        Wait(self.game, 1, note_test_wrapper, repeats=True)
+        for i in self.gameplay_objects.hit_lights:
+            #some janky code
+            #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
+            i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
 
 def read_replay(replay_file:pathlib.Path):
     '''Reads the replay and returns a tuple of data'''

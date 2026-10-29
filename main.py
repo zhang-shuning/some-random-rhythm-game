@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from modules.classes import Text, Wait, Scene
 from modules.constants import *
 from modules.shared_variables import *
-from modules.scripts import load_images
+from modules.scripts import load_images, handle_fblits
 
 from scenes.gameplay_scripts import GameplayScriptManager
 
@@ -16,9 +16,6 @@ screen:pygame.Surface = pygame.display.set_mode((HORIZONTAL_SIZE, VERTICAL_SIZE)
 clock:pygame.time.Clock = pygame.time.Clock()
 pygame.init()
 load_images()
-
-from scenes.init_scenes import init_scenes
-init_scenes()
 
 class GameController():
     def __init__(self) -> None:
@@ -86,6 +83,7 @@ class GameController():
 
         #Render
         self.cur_scene.render(screen)
+        screen.fblits(handle_fblits(self.global_draw_list))
 
         #If time is too off the expected time, go multiple ticks instead
         self.expected_time += S_PER_TICK

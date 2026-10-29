@@ -7,7 +7,6 @@ from main import GameController
 from scenes.gameplay_scripts import *
 from modules.scripts import handle_fblits
 from modules.classes import Wait, WaitExtendable, PausableScene
-from modules.shared_variables import *
 
 if TYPE_CHECKING:
     from typing import TYPE_CHECKING
@@ -16,6 +15,7 @@ class GamePlayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
         self.gameplay_objects = GameplayScriptManager(game)
         super().__init__(game)
+
     def events(self, event: pygame.Event):
         if event.type == pygame.QUIT:
             #I shouldn't need any cleanup after quit, so I should be able to keep this
@@ -101,63 +101,57 @@ class GamePlayScene(PausableScene):
                 self.gameplay_objects.acc_text.update_and_draw_text(f"{self.gameplay_objects.acc:.2f}%")
                 self.gameplay_objects.note_hit_or_missed = False
             #Draw screen
-            handle_fblits()
-            screen.fblits(fblits_list)
+            screen.fblits(handle_fblits(self.drawn_list))
             #Move notes
             if not self.is_paused:
-                for note_row in note_list:
+                for note_row in self.gameplay_objects.note_list:
                     for note in note_row:
                         note.move()
 
-            for i in destroy_list:
+            for i in self.destroy_list:
                 i.destroy()
-            destroy_list.clear()
+            self.destroy_list.clear()
 
             pygame.display.flip()
 
-    def scene_cleanup(self):
-        for i in note_list:
-            i.clear()
-        for i in range(4):
-            held_notes[i] = False
-
     def scene_init(self):
-        score_text.draw()
-        acc_text.draw()
-        combo_text.draw()
-        chart.draw()
-        judgement_line.draw()
+        self.gameplay_objects.score_text.draw()
+        self.gameplay_objects.acc_text.draw()
+        self.gameplay_objects.combo_text.draw()
+        self.gameplay_objects.chart.draw()
+        self.gameplay_objects.judgement_line.draw()
         note_test_wrapper()
-        Wait(1, self.game, note_test_wrapper, repeats=True, use_game_tick=True)
-        for i in hit_lights:
-            i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw))
+        Wait(self.game, 1, note_test_wrapper, repeats=True)
+        for i in self.gameplay_objects.hit_lights:
+            #some janky code
+            #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
+            i.append(WaitExtendable(HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
 
 
 #Input array
 input_array = []
 
-
-def stop_assets():
-    score_text.stop_draw()
-    acc_text.stop_draw()
-    combo_text.stop_draw()
-    chart.stop_draw()
-    judgement_line.stop_draw()
-    note_list.clear()
-
 def make_replay_bytearray() -> bytearray:
-    #Version (8 bits)
-    #Framerate
-    #Tick rate
-    #32 bits gameticks, 4 bits time
+    '''Returns a bytearray containing the binary data for the replay'''
+    #Header
+    #ID
     byte_list = bytearray(b"RPLY\032\n")
+    #Version number
     byte_list.append(1)
+
+    if FPS_CAP > 2**32-1:
+        raise ValueError("FPS cap is too big")
+    if TPS_CAP > 2**32-1:
+        raise ValueError("TPS cap is too big")
+    #FPS cap and TPS cap
     byte_list += struct.pack(">ii", FPS_CAP, TPS_CAP)
+
+    #Data
     for i in input_array:
+        #The data is 4 bytes time, 1 byte the key
         if i[0] > 2**32-1:
             raise ValueError("Time is too big.")
         byte_list += struct.pack(">ib", i[0], i[1])
-    print(byte_list)
     return byte_list
 
 def save_replay():
