@@ -129,16 +129,16 @@ class GameplayScriptManager():
     def calculate_acc(self) -> float:
         return 100*(300*self.hits_300+200*self.hits_200+100*self.hits_100+50*self.hits_50)/(300*(self.hits_300+self.hits_200+self.hits_100+self.hits_50+self.miss_0))
 
-#Just spawns some notes every 3 seconds
-def note_test_wrapper():
-    random_1 = randint(1,4)
-    Note(random_1).draw()
-    if randint(0,3) == 0:
-        while 1:
-            random_2 = randint(1,4)
-            if random_1 != random_2:
-                LongNote(random_2, 10)
-                break
+    #Just spawns some notes every 3 seconds
+    def note_test_wrapper(self):
+        random_1 = randint(1,4)
+        Note(self, random_1).draw()
+        if randint(0,3) == 0:
+            while 1:
+                random_2 = randint(1,4)
+                if random_1 != random_2:
+                    LongNote(self, random_2, 10)
+                    break
 
 class JudgementTextHandler(Wait):
     '''

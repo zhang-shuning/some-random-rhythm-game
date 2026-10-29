@@ -118,8 +118,8 @@ class GameplayScene(PausableScene):
         self.gameplay_objects.combo_text.draw()
         self.gameplay_objects.chart.draw()
         self.gameplay_objects.judgement_line.draw()
-        note_test_wrapper()
-        Wait(self.game, 1, note_test_wrapper, repeats=True)
+        self.gameplay_objects.note_test_wrapper()
+        Wait(self.game, 1, self.gameplay_objects.note_test_wrapper, repeats=True)
         for i in self.gameplay_objects.hit_lights:
             #some janky code
             #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
