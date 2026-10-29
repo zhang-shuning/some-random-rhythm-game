@@ -112,8 +112,6 @@ class GamePlayScene(PausableScene):
                 i.destroy()
             self.destroy_list.clear()
 
-            pygame.display.flip()
-
     def scene_init(self):
         self.gameplay_objects.score_text.draw()
         self.gameplay_objects.acc_text.draw()

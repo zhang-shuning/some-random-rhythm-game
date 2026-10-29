@@ -89,7 +89,6 @@ def render(screen):
         screen.fill((152,100,0))
         handle_fblits()
         screen.fblits(fblits_list)
-        pygame.display.flip()
 
 def scene_init():
     intro_text.draw()

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from modules.classes import Text, Wait, Scene
 from modules.constants import *
-from modules.shared_variables import *
 from modules.scripts import load_images, handle_fblits
 
 from scenes.gameplay_scripts import GameplayScriptManager
@@ -82,8 +81,10 @@ class GameController():
         self.cur_scene.pre_render()
 
         #Render
-        self.cur_scene.render(screen)
-        screen.fblits(handle_fblits(self.global_draw_list))
+        if self.ticks % FRAME_FREQUENCY == 0:
+            self.cur_scene.render(screen)
+            screen.fblits(handle_fblits(self.global_draw_list))
+            pygame.display.flip()
 
         #If time is too off the expected time, go multiple ticks instead
         self.expected_time += S_PER_TICK

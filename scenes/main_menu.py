@@ -30,7 +30,6 @@ def render(screen):
         screen.fill((152,100,0))
         handle_fblits()
         screen.fblits(fblits_list)
-        pygame.display.flip()
 
 def make_scene():
     Scene("main_menu", event_handler, render=render, scene_init_function=init)
