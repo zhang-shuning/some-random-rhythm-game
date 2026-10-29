@@ -4,7 +4,6 @@ import pygame
 
 from modules.classes import Scene, Text
 from modules.scripts import handle_fblits
-from modules.shared_variables import *
 from modules.constants import *
 
 intro_string = '''

@@ -1,7 +1,5 @@
 '''Contains constants used by the game.'''
 
-import enum
-
 def _round_to_nearest_odd(n):
     '''AI function because I can't be bothered to think'''
     return round((n - 1) / 2) * 2 + 1

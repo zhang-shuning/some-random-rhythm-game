@@ -3,8 +3,7 @@ import pygame
 import pathlib
 from typing import TYPE_CHECKING
 
-from modules.shared_variables import *
-from modules.constants import IMAGE_FILE_EXTENSIONS, HORIZONTAL_SIZE
+from modules.constants import IMAGE_FILE_EXTENSIONS
 
 if TYPE_CHECKING:
     from main import GameController

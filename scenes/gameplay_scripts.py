@@ -8,7 +8,6 @@ import pygame
 
 from modules.classes import Wait, Text, Sprite, WaitExtendable, DrawbleRect, PausableScene, Button
 from modules.constants import *
-from modules.shared_variables import *
 
 if TYPE_CHECKING:
     from main import GameController
