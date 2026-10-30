@@ -14,6 +14,7 @@ This is a (hopefully) temporary text based console.
 So far:
 1 goes to game
 2 goes to replay test
+3 goes to map maker
 exit closes the program
 back goes back to main menu
 '''
@@ -34,6 +35,9 @@ class LevelSelectScene(Scene):
         elif command == '2':
             self.game.new_scene = True
             self.game.next_scene_str = "replay"
+        elif command == '3':
+            self.game.new_scene = True
+            self.game.next_scene_str = "map_maker"
 
     def handle_event(self, event:pygame.Event):
         if event.type == pygame.KEYDOWN:

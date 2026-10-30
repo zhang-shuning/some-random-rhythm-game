@@ -3,7 +3,6 @@
 import time
 import pygame
 import pathlib
-from typing import TYPE_CHECKING
 
 from modules.classes import Text, Wait, Scene
 from modules.constants import *
@@ -32,7 +31,6 @@ class GameController():
         self.load_images()
         self.init_scenes()
 
-        #Initialization stuff
         self.next_scene_str = "main_menu"
         self.running = True
         self.new_scene = True
@@ -54,14 +52,18 @@ class GameController():
         self.cur_scene:Scene = Scene(self)
 
     def _load_image(self, image_path:str|pathlib.Path, texture_name:str, transparent=False):
-        '''Loads a single image and saves to dictionary based from filename'''
+        '''Helper method that loads a single image and saves to the dictionary based from filename'''
         if not transparent:
             self.images_dict[texture_name] = pygame.image.load(image_path).convert()
         else:
             self.images_dict[texture_name] = pygame.image.load(image_path).convert_alpha()
 
     def load_images(self) -> None:
-        '''Loads all images and saves them to a dictionary'''
+        '''
+        Loads all images and saves them to a dictionary
+        For now, all textures are loaded immediately, but dynamic loading could come later
+        if memory ever becomes an issue
+        '''
         print("Loading images...")
         textures_folder = pathlib.Path("assets/textures")
         transparent_texture_folder = pathlib.Path("assets/textures-transparent")
@@ -77,7 +79,8 @@ class GameController():
                 self._load_image(item, item.stem, transparent=True)
 
     def init_scenes(self) -> None:
-        '''Hard coded because... I really couldn't think of anything better at the time'''
+        '''Hard coded because the scenes need to be switched either after or directly directly before...
+        and I really couldn't think of anything better at the time'''
         self.scene_name_dict= {
             "gameplay" : GameplayScene,
             "level_selector" : LevelSelectScene,
@@ -93,6 +96,7 @@ class GameController():
             if self.new_scene:
                 self.cur_scene = self.scene_name_dict[self.next_scene_str](self)
                 print(f"initializing {self.cur_scene}")
+                self.button_list.clear()
                 self.cur_scene.scene_init()
                 self.new_scene = False
 

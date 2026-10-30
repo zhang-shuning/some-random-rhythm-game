@@ -179,9 +179,11 @@ class Wait():
                 self.tick = lambda:scene.unpaused_ticks #type: ignore
             else:
                 self.tick = lambda:scene.scene_ticks
+            self.delta_time_list = scene.delta_time_list
             scene.delta_time_list.append(self)
         else:
             self.tick = lambda:game.ticks
+            self.delta_time_list = game.global_delta_time_list
             game.global_delta_time_list.append(self)
         self.repeats = repeats
         self.needed_time = self.tick() + delta*TPS_CAP
@@ -279,7 +281,7 @@ class Scene():
     tick() increases the tick count
     '''
     def __init__(self, game:GameController) -> None:
-
+        '''Do not put things in the __init__ because the the object will not be fully loaded, and some lists will break'''
         self.game = game
         self.scene_ticks = 0
 
@@ -292,24 +294,25 @@ class Scene():
         self.delta_time_list:list[Wait] = [] #List of delta time objects
 
     def scene_init(self):
-        pass
+        '''Function that runs at the start of the scene, use in place of __init__'''
 
     def handle_event(self, event):
-        pass
+        '''Handles pygame events'''
 
     def handle_held_keys(self, keys):
-        pass
+        '''Handles currently held keys'''
 
     def pre_render(self):
-        pass
+        '''Runs before rendering'''
 
     def render(self, screen):
-        pass
+        '''Render function'''
 
     def after_render(self):
-        pass
+        '''Runs after rendering'''
 
     def tick(self):
+        '''Increments the ticks'''
         self.scene_ticks += 1
 
 class PausableScene(Scene):

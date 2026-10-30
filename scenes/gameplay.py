@@ -123,7 +123,6 @@ class GameplayScene(PausableScene):
             #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
             i.append(WaitExtendable(self.game, HITLIGHT_DISABLE_TIME, i[0].stop_draw, use_unpaused_ticks=True)) # type: ignore
 
-
 #Input array
 input_array = []
 

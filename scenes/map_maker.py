@@ -26,10 +26,14 @@ The data should be stored as note/LN and pos in 1 byte, then the float for time 
 intro_string = '''
 This is a (hopefully) temporary text based console.
 So far:
-exit closes the program
-back goes back to main menu
-note time (float) pos(0-3)
-ln time start (float) time end (float) pos(0-3)
+exit:  closes the program
+back:  goes back to level selector
+save:  save file
+
+note: adds a note
+args: time(float) pos(0-3)
+ln: adds a long note
+args: time start(float) time end(float) pos(0-3)
 '''
 
 @dataclass
@@ -62,22 +66,28 @@ class MapMakerScene(Scene):
             self.game.running = False
         elif cmd == "back":
             self.game.new_scene = True
-            self.game.next_scene_str = "main_menu"
+            self.game.next_scene_str = "level_selector"
         elif cmd == "note":
             try:
-                pass
+                self.response.update_and_draw_text("Note added")
             except ValueError:
                 self.response.update_and_draw_text("something went wrong with the command")
         elif cmd == 'ln':
             try:
-                pass
+                self.response.update_and_draw_text("Note added")
             except ValueError:
                 self.response.update_and_draw_text("something went wrong with the command")
         elif cmd == 'save':
             self.note_timing_list.sort(key=lambda x:x[1])
+        else:
+            self.response.update_and_draw_text("")
 
     def handle_event(self,event:pygame.Event):
-        if event.type == pygame.KEYDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if DEBUG:
+                self.mouse_text.update_and_draw_text(f"{pygame.mouse.get_pos()}")
+                print(f"mouse pos {pygame.mouse.get_pos()}")
+        elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.game.running = False
             elif event.key == pygame.K_BACKSPACE and (event.mod & pygame.KMOD_CTRL):
@@ -91,13 +101,14 @@ class MapMakerScene(Scene):
             self.text_box.update_and_draw_text(self.text_box.text + event.text)
 
     def render(self,screen):
-        screen.fill((152,100,0))
+        screen.fill((0,100,152))
         screen.fblits(handle_fblits(self.drawn_list))
 
     def scene_init(self):
+        self.mouse_text = Text(self.game, "", (HORIZONTAL_SIZE-500,0), 100)
         self.intro_text = Text(self.game, intro_string, (0,0), 10, 30)
-        self.text_box = Text(self.game, "", (0, 200), 10)
-        self.response = Text(self.game, "", (0, 900), 10)
+        self.text_box = Text(self.game, "", (700, 25), 10)
+        self.response = Text(self.game, "", (0, 900), 10, font_size=60)
         self.intro_text.draw()
 
     def save_map(self):
