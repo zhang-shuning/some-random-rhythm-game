@@ -31,9 +31,9 @@ back:  goes back to level selector
 save:  save file
 
 note: adds a note
-args: time(float) pos(0-3)
+args: pos(0-3) time(float) 
 ln: adds a long note
-args: time start(float) time end(float) pos(0-3)
+args: pos(0-3) time start(float) time end(float)
 '''
 
 @dataclass
@@ -69,16 +69,38 @@ class MapMakerScene(Scene):
             self.game.next_scene_str = "level_selector"
         elif cmd == "note":
             try:
+                #error handling
+                if int(args[1]) not in range(4):
+                    self.response.update_and_draw_text("Note slot not in range")
+                    return
+                if float(args[2]) < 0:
+                    self.response.update_and_draw_text("Time is negative")
+                    return
+                
+                self.note_timing_list.append((0, int(args[1]), float(args[2])))
                 self.response.update_and_draw_text("Note added")
-            except ValueError:
+            except IndexError:
                 self.response.update_and_draw_text("something went wrong with the command")
         elif cmd == 'ln':
             try:
+                #error handling
+                if int(args[1]) not in range(4):
+                    self.response.update_and_draw_text("Note slot not in range")
+                    return
+                if float(args[2]) < 0:
+                    self.response.update_and_draw_text("Time is negative")
+                    return
+                if float(args[3])-float(args[2]) < 0:
+                    self.response.update_and_draw_text("End time is before start time")
+                    return
+
+                self.note_timing_list.append((0, int(args[1]), float(args[2]), float(args[3])))
                 self.response.update_and_draw_text("Note added")
-            except ValueError:
+            except IndexError:
                 self.response.update_and_draw_text("something went wrong with the command")
         elif cmd == 'save':
-            self.note_timing_list.sort(key=lambda x:x[1])
+            self.note_timing_list.sort(key=lambda x:x[2])
+            print(self.note_timing_list)
         else:
             self.response.update_and_draw_text("")
 
@@ -144,6 +166,7 @@ class MapMakerScene(Scene):
             #Adds a checksum
             byte_list += hashlib.md5((Map.artist_name+Map.song_name+Map.difficulty_name).encode("utf-8")).digest()
 
+            #Whether a note is stored as a long note or normal note is stored by the leftmost bit (+128)
             for i in self.note_timing_list:
                 if i[0] == 1: # long note
                     byte_list += struct.pack(">b", 128 + i[1])
