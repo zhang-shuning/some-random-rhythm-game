@@ -14,9 +14,6 @@ from modules.constants import *
 #The replay is in the form (time, note pos)
 #0-3 for note lane 1-4, 
 REPLAY_BUFFER_AMOUNT = 8
-replay_header = {}
-replay_buffer = deque(maxlen=8)
-replay_remaining_inputs = deque()
 
 class ReplayScene(PausableScene):
     def __init__(self, game: GameController) -> None:
@@ -35,7 +32,7 @@ class ReplayScene(PausableScene):
             if event.key == pygame.K_ESCAPE:
                 self.game.running = False
             elif event.key == pygame.K_z:
-                read_replay(pathlib.Path("replays/latest.replay"))
+                pass
             if event.key == pygame.K_1:
                 if not self.is_paused:
                     self.gameplay_objects.pause()
@@ -44,11 +41,14 @@ class ReplayScene(PausableScene):
 
     def pre_render(self):
         '''Handles the playing back of the replay'''
+        for i in self.delta_time_list:
+            if i.time_passed():
+                i.run()
         update_buffer()
         while 1:
             if len(replay_buffer) == 0:
                 break
-            if replay_buffer[0][0] <= self.scene_ticks * replay_header["tps"] / TPS_CAP:
+            if replay_buffer[0][0] <= self.unpaused_ticks * replay_header["tps"] / TPS_CAP:
                 if 0 <= replay_buffer[0][1] <= 3:
                     self.gameplay_objects.judge_note(replay_buffer[0][1])
                     self.gameplay_objects.held_notes[replay_buffer[0][1]] = True
@@ -91,6 +91,9 @@ class ReplayScene(PausableScene):
             self.destroy_list.clear()
 
     def scene_init(self):
+        self.replay_header = {}
+        self.replay_buffer = deque(maxlen=8)
+        self.replay_remaining_inputs = deque()
         self.gameplay_objects = GameplayScriptManager(self.game)
         self.gameplay_objects.score_text.draw()
         self.gameplay_objects.acc_text.draw()
@@ -98,32 +101,34 @@ class ReplayScene(PausableScene):
         self.gameplay_objects.chart.draw()
         self.gameplay_objects.judgement_line.draw()
         self.gameplay_objects.note_test_wrapper()
-        Wait(self.game, 1, self.gameplay_objects.note_test_wrapper, repeats=True)
+        Wait(self.game, 1, self.gameplay_objects.note_test_wrapper, repeats=True, use_unpaused_ticks=True)
         for i in self.gameplay_objects.hit_lights:
             #some janky code
             #basically, i[0] is the light sprite, i[1] is the wait object that automatically turns off the hitlight in the list
-            i.append(WaitExtendable(self.game, HITLIGHT_DISABLE_TIME, i[0].stop_draw)) # type: ignore
+            i.append(WaitExtendable(self.game, HITLIGHT_DISABLE_TIME, i[0].stop_draw, use_unpaused_ticks=True)) # type: ignore
+        self.read_replay(pathlib.Path("replays/latest.replay"))
 
-def read_replay(replay_file:pathlib.Path):
-    '''Reads the replay and returns a tuple of data'''
-    with open(replay_file, "rb") as f:
-        f.seek(6)
-        header = f.read(9)
-        header_info = struct.unpack(">bii", header)
-        replay_header["version"] = header_info[0]
-        replay_header["fps"] = header_info[1]
-        replay_header['tps'] = header_info[2]
-        if header_info[0] == 1:
-            data = f.read() #It's better to read in chunks, but effort...
-            if len(data) % 5 != 0:
-                print("Something went wong with the replay")
-                return
-            for i in range(len(data)//5):
-                cur_input = struct.unpack(">ib", data[i*5:i*5+5])
-                replay_remaining_inputs.append((cur_input[0], cur_input[1]))
+    def read_replay(self, replay_file:pathlib.Path):
+        '''Reads the replay and returns a tuple of data'''
+        with open(replay_file, "rb") as f:
+            #Skip past identification
+            f.seek(6)
+            header = f.read(9)
+            header_info = struct.unpack(">bii", header)
+            self.replay_header["version"] = header_info[0]
+            self.replay_header["fps"] = header_info[1]
+            self.replay_header['tps'] = header_info[2]
+            if header_info[0] == 1:
+                data = f.read() #It's better to read in chunks, but effort...
+                if len(data) % 5 != 0:
+                    print("Something went wong with the replay")
+                    return
+                for i in range(len(data)//5):
+                    cur_input = struct.unpack(">ib", data[i*5:i*5+5])
+                    self.replay_remaining_inputs.append((cur_input[0], cur_input[1]))
 
-def update_buffer():
-    for _ in range(REPLAY_BUFFER_AMOUNT-len(replay_buffer)):
-        if len(replay_remaining_inputs) != 0:
-            replay_buffer.append(replay_remaining_inputs[0])
-            replay_remaining_inputs.popleft()
+    def update_buffer(self):
+        for _ in range(REPLAY_BUFFER_AMOUNT-len(self.replay_buffer)):
+            if len(self.replay_remaining_inputs) != 0:
+                self.replay_buffer.append(self.replay_remaining_inputs[0])
+                self.replay_remaining_inputs.popleft()
