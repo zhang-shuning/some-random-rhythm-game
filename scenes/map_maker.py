@@ -34,6 +34,8 @@ note: adds a note
 args: pos(0-3) time(float) 
 ln: adds a long note
 args: pos(0-3) time start(float) time end(float)
+setup: setup the map so it could actually be saved
+args:
 '''
 
 @dataclass
@@ -45,14 +47,15 @@ class Map():
     saved:bool = False
 
 def str_fits_in_u_short(n:str):
-        if len(n.format("utf-8")) > 2**16-1:
+        print(n.format("utf-8"))
+        if len(n.format("utf-8")) < 2**16-1:
             return True
         return False
 
 class MapMakerScene(Scene):
     def __init__(self, game: GameController) -> None:
         super().__init__(game)
-        self.current_map = None
+        self.current_map = Map("default", "default", "default", 180)
 
         self.note_timing_list = [] # (LN/Normal, pos, time start, (time end))
 
@@ -80,7 +83,9 @@ class MapMakerScene(Scene):
                 self.note_timing_list.append((0, int(args[1]), float(args[2])))
                 self.response.update_and_draw_text("Note added")
             except IndexError:
-                self.response.update_and_draw_text("something went wrong with the command")
+                self.response.update_and_draw_text("IndexError: Likely not enough arguments given")
+            except ValueError:
+                self.response.update_and_draw_text("ValueError: Note or time likely not right data type")
         elif cmd == 'ln':
             try:
                 #error handling
@@ -97,10 +102,13 @@ class MapMakerScene(Scene):
                 self.note_timing_list.append((0, int(args[1]), float(args[2]), float(args[3])))
                 self.response.update_and_draw_text("Note added")
             except IndexError:
-                self.response.update_and_draw_text("something went wrong with the command")
+                self.response.update_and_draw_text("IndexError: Likely not enough arguments given")
+            except ValueError:
+                self.response.update_and_draw_text("ValueError: Note or time likely not right data type")
         elif cmd == 'save':
             self.note_timing_list.sort(key=lambda x:x[2])
             print(self.note_timing_list)
+            self.save_map()
         else:
             self.response.update_and_draw_text("")
 
@@ -135,18 +143,18 @@ class MapMakerScene(Scene):
 
     def save_map(self):
             #Ensure all strings don't go over the max length for u16
-            if not str_fits_in_u_short(Map.song_name):
+            if not str_fits_in_u_short(self.current_map.song_name):
                 self.response.update_and_draw_text("The song name is too long (max 65535)")
                 return
-            if not str_fits_in_u_short(Map.artist_name):
+            if not str_fits_in_u_short(self.current_map.artist_name):
                 self.response.update_and_draw_text("The artist name is too long (max 65535)")
                 return
-            if not str_fits_in_u_short(Map.difficulty_name):
+            if not str_fits_in_u_short(self.current_map.difficulty_name):
                 self.response.update_and_draw_text("The difficulty name is too long (max 65535)")
                 return
             
             pathlib.Path("maps").mkdir(exist_ok=True)
-            file_name = f"{Map.artist_name} - {Map.song_name} ({Map.difficulty_name}).rgmap"
+            file_name = f"{self.current_map.artist_name} - {self.current_map.song_name} ({self.current_map.difficulty_name}).rgmap"
             file_path = pathlib.Path("maps") / file_name
             byte_list = bytearray(b"RGMap\032\n")
 
@@ -154,17 +162,17 @@ class MapMakerScene(Scene):
             byte_list += struct.pack(">b", 1)
 
             #Lengths for strings
-            byte_list += struct.pack(">h", len(Map.song_name.encode("utf-8")))
-            byte_list += struct.pack(">h", len(Map.artist_name.encode("utf-8")))
-            byte_list += struct.pack(">h", len(Map.difficulty_name.encode("utf-8")))
+            byte_list += struct.pack(">h", len(self.current_map.song_name.encode("utf-8")))
+            byte_list += struct.pack(">h", len(self.current_map.artist_name.encode("utf-8")))
+            byte_list += struct.pack(">h", len(self.current_map.difficulty_name.encode("utf-8")))
 
             #Strings
-            byte_list += Map.song_name.encode("utf-8")
-            byte_list += Map.artist_name.encode("utf-8")
-            byte_list += Map.difficulty_name.encode("utf-8")
+            byte_list += self.current_map.song_name.encode("utf-8")
+            byte_list += self.current_map.artist_name.encode("utf-8")
+            byte_list += self.current_map.difficulty_name.encode("utf-8")
 
             #Adds a checksum
-            byte_list += hashlib.md5((Map.artist_name+Map.song_name+Map.difficulty_name).encode("utf-8")).digest()
+            byte_list += hashlib.md5((self.current_map.artist_name+self.current_map.song_name+self.current_map.difficulty_name).encode("utf-8")).digest()
 
             #Whether a note is stored as a long note or normal note is stored by the leftmost bit (+128)
             for i in self.note_timing_list:
@@ -175,3 +183,5 @@ class MapMakerScene(Scene):
                 else:
                     byte_list += struct.pack(">b", i[1])
                     byte_list += struct.pack(">d", i[2])
+            with open(file_path, 'wb') as f:
+                f.write(byte_list)

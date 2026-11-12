@@ -44,19 +44,19 @@ class ReplayScene(PausableScene):
         for i in self.delta_time_list:
             if i.time_passed():
                 i.run()
-        update_buffer()
+        self.update_buffer()
         while 1:
-            if len(replay_buffer) == 0:
+            if len(self.replay_buffer) == 0:
                 break
-            if replay_buffer[0][0] <= self.unpaused_ticks * replay_header["tps"] / TPS_CAP:
-                if 0 <= replay_buffer[0][1] <= 3:
-                    self.gameplay_objects.judge_note(replay_buffer[0][1])
-                    self.gameplay_objects.held_notes[replay_buffer[0][1]] = True
-                    replay_buffer.popleft()
-                elif 4 <= replay_buffer[0][1] <= 7:
-                    self.gameplay_objects.judge_ln_release(replay_buffer[0][1]-4)
-                    self.gameplay_objects.held_notes[replay_buffer[0][1]-4] = False
-                    replay_buffer.popleft()
+            if self.replay_buffer[0][0] <= self.unpaused_ticks * self.replay_header["tps"] / TPS_CAP:
+                if 0 <= self.replay_buffer[0][1] <= 3:
+                    self.gameplay_objects.judge_note(self.replay_buffer[0][1])
+                    self.gameplay_objects.held_notes[self.replay_buffer[0][1]] = True
+                    self.replay_buffer.popleft()
+                elif 4 <= self.replay_buffer[0][1] <= 7:
+                    self.gameplay_objects.judge_ln_release(self.replay_buffer[0][1]-4)
+                    self.gameplay_objects.held_notes[self.replay_buffer[0][1]-4] = False
+                    self.replay_buffer.popleft()
             else:
                 break
 
