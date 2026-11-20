@@ -68,8 +68,7 @@ class MapMakerScene(Scene):
         if cmd == "exit":
             self.game.running = False
         elif cmd == "back":
-            self.game.new_scene = True
-            self.game.next_scene_str = "level_selector"
+            self.game.load_scene("level_selector")
         elif cmd == "note":
             try:
                 #error handling

@@ -35,8 +35,7 @@ class MainMenuScene(Scene):
             screen.fblits(handle_fblits(self.drawn_list))
 
     def goto_level_select(self):
-        self.game.new_scene = True
-        self.game.next_scene_str = "level_selector"
+        self.game.load_scene("level_selector")
 
     def exit_game(self):
         self.game.running = False

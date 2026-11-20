@@ -11,6 +11,7 @@ from modules.constants import *
 
 if TYPE_CHECKING:
     from main import GameController
+    from pathlib import Path
 
 class GameplayScriptManager():
     def __init__(self, game:GameController) -> None:
@@ -84,8 +85,7 @@ class GameplayScriptManager():
     def stop_game(self):
         assert isinstance(self.scene, PausableScene)
         self.unpause()
-        self.game.new_scene = True
-        self.game.next_scene_str = "level_selector"
+        self.game.load_scene("level_selector")
 
     def enable_hitlight(self, n):
         '''Enables the hitlight'''
@@ -145,6 +145,11 @@ class GameplayScriptManager():
                 if random_1 != random_2:
                     LongNote(self, random_2, 10)
                     break
+
+    def load_map(self, path:Path):
+        '''loads a map with the file path'''
+        if not path.exists():
+            pass
 
 class JudgementTextHandler(Wait):
     '''

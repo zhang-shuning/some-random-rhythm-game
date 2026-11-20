@@ -27,17 +27,13 @@ class LevelSelectScene(Scene):
         if command == "exit":
             self.game.running = False
         elif command == "back":
-            self.game.new_scene = True
-            self.game.next_scene_str = "main_menu"
+            self.game.load_scene("main_menu")
         elif command == "1":
-            self.game.new_scene = True
-            self.game.next_scene_str = "gameplay"
+            self.game.load_scene("gameplay")
         elif command == '2':
-            self.game.new_scene = True
-            self.game.next_scene_str = "replay"
+            self.game.load_scene("replay")
         elif command == '3':
-            self.game.new_scene = True
-            self.game.next_scene_str = "map_maker"
+            self.game.load_scene("map_maker")
 
     def handle_event(self, event:pygame.Event):
         if event.type == pygame.KEYDOWN:
