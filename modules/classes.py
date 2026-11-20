@@ -43,7 +43,7 @@ class DrawnEntity(AbstractDrawable):
         if is_global:
             self.drawn_list = game.global_draw_list
         else:
-            self.drawn_list = game.cur_scene.drawn_list
+            self.drawn_list = game.get_scene().drawn_list
         self.setup()
 
     def setup(self, entity_index=0) -> None:
@@ -90,7 +90,7 @@ class DrawbleRect(AbstractDrawable):
         if is_global:
             self.drawn_list = game.global_draw_list
         else:
-            self.drawn_list = game.cur_scene.drawn_list
+            self.drawn_list = game.get_scene().drawn_list
 
     @override
     def stop_draw(self) -> None:
@@ -174,7 +174,7 @@ class Wait():
         '''
 
         if not is_global:
-            scene = game.cur_scene
+            scene = game.get_scene()
             if use_unpaused_ticks:
                 self.tick = lambda:scene.unpaused_ticks #type: ignore
             else:
@@ -292,6 +292,9 @@ class Scene():
         self.destroy_list = [] # List of object to be destroyed at end of frame
         self.rect_list:list[tuple[Rect, Callable[[]]]] = [] #List of buttons
         self.delta_time_list:list[Wait] = [] #List of delta time objects
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}"
 
     def scene_init(self):
         '''Function that runs at the start of the scene, use in place of __init__'''

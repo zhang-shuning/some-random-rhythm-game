@@ -93,6 +93,9 @@ class GameController():
         self._new_scene = True
         self._next_scene_str = scene
 
+    def get_scene(self):
+        return self._cur_scene
+
     def run(self):
         '''Runs the main loop of the game'''
         #Main loop

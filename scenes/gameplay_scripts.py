@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 class GameplayScriptManager():
     def __init__(self, game:GameController) -> None:
-        self.scene = game.cur_scene
+        self.scene = game.get_scene()
         if not isinstance(self.scene, PausableScene):
             raise ValueError("Something went wrong, GameplayScriptManager attempted to be initialized with a non-pausable scene.")
         #init
@@ -161,7 +161,7 @@ class JudgementTextHandler(Wait):
     def __init__(self, g_manager:GameplayScriptManager) -> None:    
         self.g_manager = g_manager
         self.game = g_manager.game
-        self.scene = g_manager.game.cur_scene
+        self.scene = self.game.get_scene()
 
         self.q = deque()
         self.to_stop_drawing = -1
@@ -242,7 +242,7 @@ class Note(Sprite, AbstractNote):
         self.script_manager = script_manager
         self.game = script_manager.game
         self.jth = script_manager.jth
-        self.scene = script_manager.game.cur_scene
+        self.scene = script_manager.game.get_scene()
 
         self.pos = [360+200*key,0]
         self.key = key
